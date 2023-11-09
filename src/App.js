@@ -1,16 +1,32 @@
-import './App.css';
-import Header from './Header.js';
-import Nav from './Nav.js';
-import Main from './Main.js';
-import Footer from './Footer.js';
+import Header from './Header';
+import Nav from './Nav';
+import Reservation from './Components/Reservation';
+import Home from './Home';
+import Footer from './Footer';
+import React, { useState, useEffect } from "react";
+import {BrowserRouter as Router, Routes, Route} from "react-router-dom";
+import defaultTimeslots from './lib/timeslots';
+
+function checkLocalStorageForTimeslots() {
+  let timeslots = localStorage.getItem('timeslots')
+  if (!timeslots) {timeslots = defaultTimeslots}
+  else {timeslots = JSON.parse(timeslots)}
+  return timeslots
+}
 
 function App() {
+  
   return (
     <>
-      <Header name="Test"></Header>
-      <Nav></Nav>
-      <Main></Main>
-      <Footer></Footer>
+    <Router>
+      <Nav />
+      <Header />
+      <Routes>
+        <Route path="/" element={<Home />}></Route>
+        <Route path="/reservation" element={<Reservation />}></Route>
+      </Routes>
+      <Footer />
+    </Router>
     </>
   );
 }
