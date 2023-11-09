@@ -27,11 +27,13 @@ const check = asyncHandler(async (req, res) => {
 		//date_time: 11/30 11:00 AM, partySize: 46
 		//date_time: 11/30 7:00 PM, partySize: 15
 		
-		const requestedSize = 1;
+		const requestedPartySize = 1; //from the front end 7
+
+		const partySize = 48
 		const Reserved = await Reservation.find({"name" : "test"});
-		const getTimeOptions = (starter, ender, gap) => {
-			// getTimeOptions([H,M],[H,M],[H,M])
-			// getTimeOptions([10,0],[19,0], [0,30])
+		const getTimeForCheck = (starter, ender, gap) => {
+			// getTimeForCheck([H,M],[H,M],[H,M])
+			// getTimeForCheck([10,0],[19,0], [0,30])
 			let options = []
 			const start = new Date(
 				`${reservationDate} ${starter[0]}:${starter[1]}:00`
@@ -39,7 +41,7 @@ const check = asyncHandler(async (req, res) => {
 			const end = new Date(`${reservationDate} ${ender[0]}:${ender[1]}:00`)
 			while (start <= end) {
 					options = [...options,
-						{hours: start.getHours(), minutes: start.getMinutes()}
+						{hours: start.getHours(), minutes: start.getMinutes(), partySize}
 					]
 					start.setHours(
 						start.getHours() + gap[0],
@@ -48,15 +50,28 @@ const check = asyncHandler(async (req, res) => {
 				}
 			return options
 		}
-		const checkArray = getTimeOptions([10,0],[19,0],[0,30])
-
+		
+		let checkArray = getTimeForCheck([10,0],[19,0],[0,30])
+		let available = [];
 	
-		Reserved.map((val) => {
+		Reserved.map((val,i) => {
 			// all documents returned should have a time that we can show
-			checkArray.filter((vals) => {
-				vals.hours === new Date(val.reservationTime).getHours
-			}).map()
+			checkArray.filter((vals) => 
+				{
+					console.log("val.hours", vals.hours, " ------ val.reservationTime", new Date(val.reservationTime).getHours())
+					return vals.hours === new Date(val.reservationTime).getHours()
+				}
+			).map((_, i) => {
+				checkArray[i].partySize -= val.partySize
+				available.push(checkArray[i])
+			})
 		})
+
+		const partySizeRequestedFromFrontEnd = 5
+
+		let reservationTimes = checkArray.filter((val) => val.partySize>partySizeRequestedFromFrontEnd)
+
+		// console.log(checkArray)
 		// const Reserved = await Reservation.find({name: "test"});
 		
 		// {createdAt:{$gte:ISODate("2021-01-01"),$lt:ISODate("2020-05-01"}}
@@ -68,7 +83,7 @@ const check = asyncHandler(async (req, res) => {
 		// Reserved.map((val) => { PartySizeSum += val.partySize })
 		// console.log(Reserved)
 		res.status(200).json({
-			// PartySizeSum
+			reservationTimes
 		})
 	} catch (error) {
 		res.status(422)

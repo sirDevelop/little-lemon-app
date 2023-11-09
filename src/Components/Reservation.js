@@ -9,6 +9,7 @@ const Reservation = () => {
 	const axiosApi = axios.create({ baseURL: "http://localhost:9000/api/" })
 	const [reservationDate, setReservationDate] = useState("")
 	const [reservationTime, setReservationTime] = useState("Choose...")
+	const [timeOptions, setTimeOptions] = useState([])
 	const getTimeOptions = (starter, ender, gap) => {
 		// getTimeOptions([H,M],[H,M],[H,M])
 		// getTimeOptions([10,0],[19,0], [0,30])
@@ -76,9 +77,10 @@ const Reservation = () => {
 		axiosApi
 				.post(`reservation/check`, { reservationDate })
 				.then((response) => {
-					console.log(response)
+					setTimeOptions(response.data.reservationTimes)
+					// set
 				})
-	}, [axiosApi, reservationDate])
+	}, [reservationDate])
 
 	function submitForm(e) {
 		e.preventDefault()
@@ -116,12 +118,8 @@ const Reservation = () => {
 											setReservationTime(e.target.value)
 										}
 									>
-										{getTimeOptions(
-											[10, 0],
-											[19, 0],
-											[0, 30]
-										).map((val) => {
-											return val
+										{timeOptions.map((val) => {
+											return <option>{val.hours + ":" + val.minutes}</option>
 										})}
 									</Form.Select>
 								</Form.Group>
