@@ -35,6 +35,7 @@ server.once('close', function () {
     app.use("/api/reservation", require('./routes/reservationRoutes'))
 	app.use("/api/users", require('./routes/userRoutes'))
 	app.use("/api/test", require('./routes/testRoutes'))
+    app.use("/api/menuOptions", require('./routes/menuOptionRoutes'))
 
 	// dev
 	// app.use("/api/dev", require('./routes/devRoutes'))

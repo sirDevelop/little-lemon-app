@@ -1,6 +1,7 @@
 import Header from './Header';
 import Nav from './Nav';
 import Reservation from './Components/Reservation';
+import Menu from './Components/Menu';
 import Home from './Home';
 import Footer from './Footer';
 import React, { useState, useEffect } from "react";
@@ -24,6 +25,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />}></Route>
         <Route path="/reservation" element={<Reservation />}></Route>
+        <Route path="/menu" element={<Menu />}></Route>
       </Routes>
       <Footer />
     </Router>

@@ -10,77 +10,58 @@ const Reservation = () => {
 	const [reservationDate, setReservationDate] = useState("")
 	const [reservationTime, setReservationTime] = useState("Choose...")
 	const [timeOptions, setTimeOptions] = useState([])
-	const getTimeOptions = (starter, ender, gap) => {
-		// getTimeOptions([H,M],[H,M],[H,M])
-		// getTimeOptions([10,0],[19,0], [0,30])
-		let options = []
-		const start = new Date(
-			`${reservationDate} ${starter[0]}:${starter[1]}:00`
-		)
-		const end = new Date(`${reservationDate} ${ender[0]}:${ender[1]}:00`)
-		if (/* reservationDate */ 0) {
-			options = [
-				...options,
-				<option key={-1} value={"Choose..."} disabled>
-					Choose...
-				</option>,
-			]
-			while (start <= end) {
-				options = [
-					...options,
-					<option key={start.getTime()} value={start.getTime()}>
-						{start.toLocaleString("en-US", {
-							hour: "2-digit",
-							minute: "2-digit",
-							timeZone:
-								Intl.DateTimeFormat().resolvedOptions()
-									.timeZone,
-						})}
-					</option>,
-				]
-				start.setHours(
-					start.getHours() + gap[0],
-					start.getMinutes() + gap[1]
-				)
-			}
-		} else {
-			options = [
-				...options,
-				<option key={-1} value={"Choose..."} disabled>
-					Please select date
-				</option>,
-			]
-		}
-		return options
-	}
-
-	const [partySize, setPartySize] = useState(1)
-	const [tables, setTables] = useState({
-		small: { maxPartySize: 2, available: 4 },
-		medium: { maxPartySize: 4, available: 4 },
-		large: { maxPartySize: 6, available: 4 },
-	})
+	const [partySize, setPartySize] = useState("")
+	const [partySizeAvailable, setPartySizeAvailable] = useState("")
 
 	useEffect(() => {
-		const available =
-			tables.small.maxPartySize * tables.small.available +
-			tables.medium.maxPartySize * tables.medium.available +
-			tables.large.maxPartySize * tables.large.available
-		if (partySize > available) {
-			setPartySize(available)
-		}
-	}, [tables, partySize])
-	// restaurant close at 7:30, last possible select time is 7:00 PM
-	// 
-
-	useEffect(() => {
-		axiosApi
-				.post(`reservation/check`, { reservationDate })
-				.then((response) => {
-					setTimeOptions(response.data.reservationTimes)
-					// set
+		if (reservationDate.length) {
+			setTimeOptions([{ title: "Loading ...", value: "Choose..." }])
+			axiosApi
+				.post(`reservation/getTime`, {
+					reservationDate,
+					partySize: partySize > 0 ? partySize : 1,
 				})
+				.then((response) => {
+					console.log(response)
+					setTimeOptions([{ title: "Please choose time", value: "Choose..." }, ...response.data.times])
+				})
+		} else {
+			setTimeOptions([
+				{ title: "Please choose date", value: "Choose..." },
+			])
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [reservationDate])
+	useEffect(() => {
+		if (reservationTime && timeOptions.length) {
+			const timeOption = timeOptions.filter(
+				(val) => val.value.toString() === reservationTime.toString()
+			)
+			if (timeOption.length) {
+				setPartySizeAvailable(
+					`(${
+						timeOption[0].partySize ? timeOption[0].partySize : 0
+					} available)`
+				)
+				if (
+					partySize >
+					timeOptions.filter(
+						(val) =>
+							val.value.toString() === reservationTime.toString()
+					)[0].partySize
+				)
+					setPartySize(
+						timeOptions.filter(
+							(val) =>
+								val.value.toString() ===
+								reservationTime.toString()
+						)[0].partySize
+					)
+			} else {
+				setPartySize("")
+			}
+		}
+	}, [reservationTime, timeOptions, partySize])
 
 	function submitForm(e) {
 		e.preventDefault()
@@ -102,38 +83,63 @@ const Reservation = () => {
 									<Form.Control
 										className="text-center"
 										type="date"
+										value={reservationDate}
 										onChange={(e) => {
 											setReservationDate(e.target.value)
 										}}
-										value={reservationDate}
 									/>
 								</Form.Group>
 
 								<Form.Group as={Col}>
 									<Form.Label>Time</Form.Label>
 									<Form.Select
+										name={"reservation-time"}
 										className="text-center"
 										defaultValue={reservationTime}
 										onChange={(e) =>
 											setReservationTime(e.target.value)
 										}
 									>
-										{timeOptions.map((val) => {
-											return <option>{val.hours + ":" + val.minutes}</option>
-										})}
+										{timeOptions.length ? (
+											timeOptions.map((val, i) => {
+												let disabledOption = false
+												if(val.reservedNotice)
+													val.reservedNotice.map(reserved => {
+													console.log(val.defaultTitle + new Date(parseInt(reserved, 10)))
+														// if(timeOptions.filter(tOptions => tOptions.defaultValue === reserved && tOptions.disabled===true).length){
+														// 	disabledOption = true
+														// }
+													})
+												return (
+													<option
+														key={i}
+														value={val.value}
+														disabled={val.disabled || disabledOption}
+													>
+														{val.title}
+													</option>
+												)
+											})
+										) : (
+											<option value={"Choose..."}>
+												Please choose date
+											</option>
+										)}
 									</Form.Select>
 								</Form.Group>
 							</Row>
 							<Row className="mb-3">
 								<Form.Group as={Col}>
-									<Form.Label>Party Size</Form.Label>
+									<Form.Label>
+										Party Size {partySizeAvailable}
+									</Form.Label>
 									<Form.Control
 										className="text-center"
 										onChange={(e) => {
 											setPartySize(e.target.value)
 										}}
 										value={partySize}
-										type="text"
+										type="number"
 										placeholder="Party Size"
 									/>
 								</Form.Group>

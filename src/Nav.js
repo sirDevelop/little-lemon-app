@@ -14,7 +14,7 @@ function Nav(props) {
                     <a>About</a>
                 </li>
                 <li className="mx-2">
-                    <a>Menu</a>
+                    <Link to="/menu">Menu</Link>
                 </li>
                 <li className="mx-2">
                     <Link to="/reservation">Reservations</Link>
