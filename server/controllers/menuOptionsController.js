@@ -3,7 +3,8 @@ const MenuOptions = require('../models/menuOptionsModel')
 
 const getMenuOptions = asyncHandler(async (req, res) => {
 	try {
-        const getAllMenuOptions = await MenuOptions.find()
+        const getAllMenuOptions = await MenuOptions.find();
+        // console.log("getAllMenuOptions", getAllMenuOptions)
         //online we will display unavailable if not available
 		
         // await MenuOptions.create({title: "Gourmet Grilled Hotdog Extravaganza", imageURL: "./images/hotdog1.jpg", price: "5.99", description: "Indulge in the ultimate hotdog experience with our Gourmet Grilled Hotdog Extravaganza! Crafted with passion and a dash of creativity, our mouthwatering creation promises to tantalize your taste buds. Served with a side of perfectly seasoned fries, our Gourmet Grilled Hotdog Extravaganza is not just a meal—it's a symphony of flavors that will make your taste buds sing!", available: true})
@@ -15,8 +16,6 @@ const getMenuOptions = asyncHandler(async (req, res) => {
         res.status(200).json({
             getAllMenuOptions
         })
-        
-        
 			// await Reservation.create({ name: "test", phone: 123456789, partySize: 3, guestId: 1, reservationTime: new Date(reservationDate + " 10:00:00") })
 			// await Reservation.create({ name: "test", phone: 123456789, partySize: 3, guestId: 2, reservationTime: new Date(reservationDate + " 10:00:00") })
 			// await Reservation.create({ name: "test", phone: 123456789, partySize: 3, guestId: 3, reservationTime: new Date(reservationDate + " 10:00:00") })
@@ -36,9 +35,9 @@ const getMenuOptions = asyncHandler(async (req, res) => {
 const orderOnline = asyncHandler(async (req, res) => {
 	try {
 		const {id} = req.body
-
         const getAllMenuOptions = await MenuOptions.findOne({_id: id})
-		const title = getAllMenuOptions[0].title
+        console.log("getAllMenuOptions", getAllMenuOptions)
+		// const title = getAllMenuOptions[0].title
         //create orders in mongoDatabase, and write the order there with order schema and etc...
         //send email to client
 
@@ -49,4 +48,4 @@ const orderOnline = asyncHandler(async (req, res) => {
 		throw new Error('Something went wrong' + error)
 	}
 })
-module.exports = { getMenuOptions }
+module.exports = { orderOnline, getMenuOptions }
