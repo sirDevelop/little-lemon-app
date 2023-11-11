@@ -34,3 +34,20 @@ body {
 	border-color: #99ff00;
 	color: #99ff00;
 }
+.cart-wrapper{
+	cursor: pointer;
+	position: relative;
+}
+.cart{
+	position: absolute;
+	width: 500px;
+	min-height: 300px;
+	top: 40px;
+	right: 0;
+	z-index: 999;
+	display: none;
+	color: #FFF;
+}
+.cart.active{
+	display: block;
+}

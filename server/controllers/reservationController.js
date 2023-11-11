@@ -8,7 +8,7 @@ const getTime = asyncHandler(async (req, res) => {
 			let times = []
 			const maxPartySize = 48
 			const start = new Date(`${reservationDate} 10:00:00`)
-			const end = new Date(`${reservationDate} 19:00:00`)
+			const end = new Date(`${reservationDate} 22:00:00`)
 
 			// await Reservation.create({ name: "test", phone: 123456789, partySize: 3, guestId: 1, reservationTime: new Date(reservationDate + " 10:00:00") })
 			// await Reservation.create({ name: "test", phone: 123456789, partySize: 3, guestId: 2, reservationTime: new Date(reservationDate + " 10:00:00") })
@@ -23,6 +23,8 @@ const getTime = asyncHandler(async (req, res) => {
 
 			const allOfDateRelatedData = await Reservation.find({ $and: [{ reservationTime: { $gte: start } }, { reservationTime: { $lte: end } }] })
 
+			let bookedGap = 0
+
 			while (start <= end) {
 
 				// Total Party Size
@@ -32,30 +34,25 @@ const getTime = asyncHandler(async (req, res) => {
 				}).map((val) => sumOfCurrentTime = sumOfCurrentTime + val.partySize)
 				// Total Party Size
 
-				times = [...times,
-				{
+				times = [...times, {
 					title: start.toLocaleString("en-US", {
 						hour: "2-digit",
 						minute: "2-digit",
 						timeZone:
 							Intl.DateTimeFormat().resolvedOptions()
 								.timeZone,
-					}) + (sumOfCurrentTime > maxPartySize - partySize ? " Unavailable" : ""),
-					defaultTitle: start.toLocaleString("en-US", {
-						hour: "2-digit",
-						minute: "2-digit",
-						timeZone:
-							Intl.DateTimeFormat().resolvedOptions()
-								.timeZone,
-					}),
+					}) + (sumOfCurrentTime > maxPartySize - partySize || bookedGap ? " Unavailable" : ""),
 					value: start.getTime(),
 					// available party size
-					partySize: maxPartySize - sumOfCurrentTime,
-					disabled: sumOfCurrentTime > maxPartySize - partySize
-				}
-				]
+					partySize: bookedGap ? 0 : maxPartySize - sumOfCurrentTime,
+					disabled: bookedGap || sumOfCurrentTime > maxPartySize - partySize
+				}]
+
+				if (bookedGap) bookedGap--
+				else if (sumOfCurrentTime > maxPartySize - partySize) bookedGap = 2
+
 				start.setMinutes(
-					start.getMinutes() + 60
+					start.getMinutes() + 30
 				)
 			}
 
