@@ -7,6 +7,8 @@ import axios from "axios"
 
 const Reservation = () => {
 	const axiosApi = axios.create({ baseURL: "http://localhost:9000/api/" })
+	const [name, setName] = useState("")
+	const [phone, setPhone] = useState("")
 	const [reservationDate, setReservationDate] = useState("")
 	const [reservationTime, setReservationTime] = useState("Choose...")
 	const [timeOptions, setTimeOptions] = useState([])
@@ -39,8 +41,7 @@ const Reservation = () => {
 			)
 			if (timeOption.length) {
 				setPartySizeAvailable(
-					`(${
-						timeOption[0].partySize ? timeOption[0].partySize : 0
+					`(${timeOption[0].partySize ? timeOption[0].partySize : 0
 					} available)`
 				)
 				if (
@@ -65,10 +66,28 @@ const Reservation = () => {
 
 	function submitForm(e) {
 		e.preventDefault()
-		let form = e.target
 		// e.target refers to whatever the target the action happened on
-		let data = Object.fromEntries(new FormData(form))
-		console.log(data)
+		let {name, phone, reservationDate, reservationTime, partySize } = Object.fromEntries(new FormData(e.target))
+		// console.log(name);	
+		// console.log(phone);
+		// console.log(reservationDate);
+		// console.log(reservationTime); //looks like the reservation time is enough to build the date back up
+		// console.log(new Date(Number(reservationTime)));
+		// console.log(partySize);
+
+		// By the way there is a bug here. 11/15 16:30 got booked for 56 people
+		axiosApi
+			.post(`reservation/createReservation`, {
+				name, phone, partySize, reservationDate, reservationTime 
+			})
+			.then((response) => {
+				console.log("response for create reservation", response)
+				document.getElementById("reservationForm").reset(); //does not reset the form
+				// document.getElementById("reservationForm").trigger('reset');
+				alert("Succeeded!");
+			}).catch(error => {
+				console.log(error)
+			})
 	}
 
 	return (
@@ -76,36 +95,69 @@ const Reservation = () => {
 			<Container>
 				<Row>
 					<Col>
-						<Form onSubmit={submitForm}>
+						<Form id="reservationForm" onSubmit={submitForm}>
+							<Row className="mb-3">
+								<Form.Group as={Col}>
+									<Form.Label>Name</Form.Label>
+									<Form.Control
+										className="text-center"
+										name="name"
+										type="string"
+										value={name}
+										onChange={(e) => {
+											setName(e.target.value)
+										}}
+										required
+									/>
+								</Form.Group>
+
+								<Form.Group as={Col}>
+									<Form.Label>Phone Number</Form.Label>
+									<Form.Control
+										className="text-center"
+										name="phone"
+										type="number"
+										value={phone}
+										onChange={(e) => {
+											setPhone(e.target.value)
+										}}
+										required
+									/>
+								</Form.Group>
+							</Row>
+
 							<Row className="mb-3">
 								<Form.Group as={Col}>
 									<Form.Label>Date</Form.Label>
 									<Form.Control
 										className="text-center"
+										name="date"
 										type="date"
 										value={reservationDate}
 										onChange={(e) => {
 											setReservationDate(e.target.value)
 										}}
+										required
 									/>
 								</Form.Group>
 
 								<Form.Group as={Col}>
 									<Form.Label>Time</Form.Label>
 									<Form.Select
-										name={"reservation-time"}
+										name={"reservationTime"}
 										className="text-center"
 										defaultValue={reservationTime}
 										onChange={(e) =>
 											setReservationTime(e.target.value)
 										}
+										required
 									>
 										{timeOptions.length ? (
 											timeOptions.map((val, i) => {
 												let disabledOption = false
-												if(val.reservedNotice)
+												if (val.reservedNotice)
 													val.reservedNotice.map(reserved => {
-													console.log(val.defaultTitle + new Date(parseInt(reserved, 10)))
+														console.log(val.defaultTitle + new Date(parseInt(reserved, 10)))
 														// if(timeOptions.filter(tOptions => tOptions.defaultValue === reserved && tOptions.disabled===true).length){
 														// 	disabledOption = true
 														// }
@@ -135,12 +187,15 @@ const Reservation = () => {
 									</Form.Label>
 									<Form.Control
 										className="text-center"
+										name="partySize"
+										min="1"
 										onChange={(e) => {
 											setPartySize(e.target.value)
 										}}
 										value={partySize}
 										type="number"
 										placeholder="Party Size"
+										required
 									/>
 								</Form.Group>
 							</Row>

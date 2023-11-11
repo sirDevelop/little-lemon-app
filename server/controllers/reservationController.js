@@ -1,5 +1,22 @@
 const asyncHandler = require('express-async-handler')
 const Reservation = require('../models/reservationModel')
+const { v4: uuidv4 } = require('uuid');
+
+const createReservation = asyncHandler(async (req, res) => {
+	try {
+		const { name, phone, partySize, reservationDate, reservationTime } = req.body
+		const guestId = uuidv4();
+		await Reservation.create({ name, phone, partySize, guestId, reservationTime })
+
+		res.status(200).json({
+			message: "Success"
+		})
+	} catch (error) {
+		res.status(422)
+		throw new Error('Something went wrong' + error)
+	}
+})
+
 const getTime = asyncHandler(async (req, res) => {
 	try {
 		const { reservationDate, partySize } = req.body
@@ -65,4 +82,4 @@ const getTime = asyncHandler(async (req, res) => {
 		throw new Error('Something went wrong' + error)
 	}
 })
-module.exports = { getTime }
+module.exports = { getTime, createReservation }
