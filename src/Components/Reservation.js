@@ -7,25 +7,33 @@ import axios from "axios"
 
 const Reservation = () => {
 	const axiosApi = axios.create({ baseURL: "http://localhost:9000/api/" })
-	const [name, setName] = useState("")
-	const [phone, setPhone] = useState("")
-	const [reservationDate, setReservationDate] = useState("")
-	const [reservationTime, setReservationTime] = useState("Choose...")
 	const [timeOptions, setTimeOptions] = useState([])
-	const [partySize, setPartySize] = useState("")
 	const [partySizeAvailable, setPartySizeAvailable] = useState("")
+	const [formData, setFormData] = useState({
+		name: "",
+		phone: "",
+		reservationDate: "",
+		reservationTime: "Choose...",
+		partySize: 0,
+	})
 
 	useEffect(() => {
-		if (reservationDate.length) {
+		if (
+			formData.reservationDate.length &&
+			formData.reservationDate !== "Choose..."
+		) {
 			setTimeOptions([{ title: "Loading ...", value: "Choose..." }])
 			axiosApi
 				.post(`reservation/getTime`, {
-					reservationDate,
-					partySize: partySize > 0 ? partySize : 1,
+					reservationDate: formData.reservationDate,
+					partySize: formData.partySize > 0 ? formData.partySize : 1,
 				})
 				.then((response) => {
 					console.log(response)
-					setTimeOptions([{ title: "Please choose time", value: "Choose..." }, ...response.data.times])
+					setTimeOptions([
+						{ title: "Please choose time", value: "Choose..." },
+						...response.data.times,
+					])
 				})
 		} else {
 			setTimeOptions([
@@ -33,59 +41,89 @@ const Reservation = () => {
 			])
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [reservationDate])
+	}, [formData.reservationDate])
 	useEffect(() => {
-		if (reservationTime && timeOptions.length) {
+		if (formData.reservationTime && timeOptions.length) {
 			const timeOption = timeOptions.filter(
-				(val) => val.value.toString() === reservationTime.toString()
+				(val) =>
+					val.value.toString() === formData.reservationTime.toString()
 			)
 			if (timeOption.length) {
-				setPartySizeAvailable(
-					`(${timeOption[0].partySize ? timeOption[0].partySize : 0
-					} available)`
-				)
+					setPartySizeAvailable(
+						`(${timeOption[0].partySize
+							? timeOption[0].partySize
+							: 0
+						} available)`
+					)
+
+					// if the party size entered is greater than the party size coming from the DB, then set the partysize to max possible
 				if (
-					partySize >
+					formData.partySize >
 					timeOptions.filter(
 						(val) =>
-							val.value.toString() === reservationTime.toString()
+							val.value.toString() ===
+							formData.reservationTime.toString()
 					)[0].partySize
 				)
-					setPartySize(
-						timeOptions.filter(
+					setFormData({
+						...formData,
+						partySize: timeOptions.filter(
 							(val) =>
 								val.value.toString() ===
-								reservationTime.toString()
-						)[0].partySize
-					)
+								formData.reservationTime.toString()
+						)[0].partySize,
+					})
 			} else {
-				setPartySize("")
+				setFormData({ ...formData, partySize: "" })
 			}
 		}
-	}, [reservationTime, timeOptions, partySize])
+	}, [
+		timeOptions,
+		formData.reservationDate,
+		formData.reservationTime,
+		formData.partySize,
+	])
 
 	function submitForm(e) {
 		e.preventDefault()
 		// e.target refers to whatever the target the action happened on
-		let {name, phone, reservationDate, reservationTime, partySize } = Object.fromEntries(new FormData(e.target))
-		// console.log(name);	
-		// console.log(phone);
-		// console.log(reservationDate);
-		// console.log(reservationTime); //looks like the reservation time is enough to build the date back up
-		// console.log(new Date(Number(reservationTime)));
-		// console.log(partySize);
+		let { name, phone, reservationDate, reservationTime, partySize } =
+			Object.fromEntries(new FormData(e.target))
 
 		// By the way there is a bug here. 11/15 16:30 got booked for 56 people
 		axiosApi
 			.post(`reservation/createReservation`, {
-				name, phone, partySize, reservationDate, reservationTime 
+				name,
+				phone,
+				partySize,
+				reservationDate,
+				reservationTime,
 			})
 			.then((response) => {
 				console.log("response for create reservation", response)
-				document.getElementById("reservationForm").reset(); //does not reset the form
-				// document.getElementById("reservationForm").trigger('reset');
-				alert("Succeeded!");
-			}).catch(error => {
+				// axiosApi
+				// 	.post(`reservation/getPartySizes`, {
+				// 		reservationTime
+				// 	})
+				// 	.then((response) => {
+				// 		setPartySizeAvailable(`(${response.data.availablePartySize} available)`)
+				// 	})
+				// const timeOption = timeOptions.filter(
+				// 	(val) => val.value.toString() === formData.reservationTime.toString()
+				// )
+				// setPartySizeAvailable(`${timeOption[0].partySize-formData.partySize ? timeOption[0].partySize-formData.partySize : 0
+				// 		}`)
+				setFormData({
+					name: "",
+					phone: "",
+					reservationDate: "",
+					reservationTime: "",
+					partySize: "",
+				})
+				setPartySizeAvailable("")
+				alert("Succeeded!")
+			})
+			.catch((error) => {
 				console.log(error)
 			})
 	}
@@ -103,9 +141,13 @@ const Reservation = () => {
 										className="text-center"
 										name="name"
 										type="string"
-										value={name}
+										value={formData.name}
 										onChange={(e) => {
-											setName(e.target.value)
+											// setName(e.target.value)
+											setFormData({
+												...formData,
+												name: e.target.value,
+											})
 										}}
 										required
 									/>
@@ -117,9 +159,13 @@ const Reservation = () => {
 										className="text-center"
 										name="phone"
 										type="number"
-										value={phone}
+										value={formData.phone}
 										onChange={(e) => {
-											setPhone(e.target.value)
+											// setPhone(e.target.value)
+											setFormData({
+												...formData,
+												phone: e.target.value,
+											})
 										}}
 										required
 									/>
@@ -133,9 +179,13 @@ const Reservation = () => {
 										className="text-center"
 										name="date"
 										type="date"
-										value={reservationDate}
+										value={formData.reservationDate}
 										onChange={(e) => {
-											setReservationDate(e.target.value)
+											// setReservationDate(e.target.value)
+											setFormData({
+												...formData,
+												reservationDate: e.target.value,
+											})
 										}}
 										required
 									/>
@@ -144,11 +194,15 @@ const Reservation = () => {
 								<Form.Group as={Col}>
 									<Form.Label>Time</Form.Label>
 									<Form.Select
-										name={"reservationTime"}
+										name="reservationTime"
 										className="text-center"
-										defaultValue={reservationTime}
+										defaultValue={formData.reservationTime}
 										onChange={(e) =>
-											setReservationTime(e.target.value)
+											// setReservationTime(e.target.value)
+											setFormData({
+												...formData,
+												reservationTime: e.target.value,
+											})
 										}
 										required
 									>
@@ -156,17 +210,30 @@ const Reservation = () => {
 											timeOptions.map((val, i) => {
 												let disabledOption = false
 												if (val.reservedNotice)
-													val.reservedNotice.map(reserved => {
-														console.log(val.defaultTitle + new Date(parseInt(reserved, 10)))
-														// if(timeOptions.filter(tOptions => tOptions.defaultValue === reserved && tOptions.disabled===true).length){
-														// 	disabledOption = true
-														// }
-													})
+													val.reservedNotice.map(
+														(reserved) => {
+															console.log(
+																val.defaultTitle +
+																new Date(
+																	parseInt(
+																		reserved,
+																		10
+																	)
+																)
+															)
+															// if(timeOptions.filter(tOptions => tOptions.defaultValue === reserved && tOptions.disabled===true).length){
+															// 	disabledOption = true
+															// }
+														}
+													)
 												return (
 													<option
 														key={i}
 														value={val.value}
-														disabled={val.disabled || disabledOption}
+														disabled={
+															val.disabled ||
+															disabledOption
+														}
 													>
 														{val.title}
 													</option>
@@ -188,11 +255,19 @@ const Reservation = () => {
 									<Form.Control
 										className="text-center"
 										name="partySize"
-										min="1"
 										onChange={(e) => {
-											setPartySize(e.target.value)
+											if (e.target.value > 0)
+												setFormData({
+													...formData,
+													partySize: e.target.value,
+												})
+											else
+												setFormData({
+													...formData,
+													partySize: "",
+												})
 										}}
-										value={partySize}
+										value={formData.partySize}
 										type="number"
 										placeholder="Party Size"
 										required

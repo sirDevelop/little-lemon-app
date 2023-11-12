@@ -32,10 +32,30 @@ const getMenuOptions = asyncHandler(async (req, res) => {
 	}
 })
 
+// const orderOnline = asyncHandler(async (req, res) => {
+// 	try {
+// 		const { menuid, customerId, name, quantity, phoneNumber } = req.body
+//         await OrderOnline.create({menuId, customerId, name, quantity, phoneNumber})
+
+// 		// const getAllMenuOptions = await MenuOptions.findOne({ _id: id })
+// 		// console.log("getAllMenuOptions", getAllMenuOptions)
+// 		// const title = getAllMenuOptions[0].title
+// 		//create orders in mongoDatabase, and write the order there with order schema and etc...
+// 		//send email to client
+
+// 		res.status(200).json({
+// 		})
+// 	} catch (error) {
+// 		res.status(422)
+// 		throw new Error('Something went wrong' + error)
+// 	}
+// })
+
 const orderOnline = asyncHandler(async (req, res) => {
 	try {
-		const { menuid, customerId, name, quantity, phoneNumber } = req.body
-        await OrderOnline.create({menuId, customerId, name, quantity, phoneNumber})
+		const { cart, name, phone } = req.body
+		await OrderOnline.create({ cart: JSON.stringify(cart), phoneNumber: phone, name })
+
 
 		// const getAllMenuOptions = await MenuOptions.findOne({ _id: id })
 		// console.log("getAllMenuOptions", getAllMenuOptions)
@@ -44,6 +64,7 @@ const orderOnline = asyncHandler(async (req, res) => {
 		//send email to client
 
 		res.status(200).json({
+
 		})
 	} catch (error) {
 		res.status(422)

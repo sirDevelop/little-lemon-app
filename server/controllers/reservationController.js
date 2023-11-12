@@ -5,12 +5,29 @@ const { v4: uuidv4 } = require('uuid');
 const createReservation = asyncHandler(async (req, res) => {
 	try {
 		const { name, phone, partySize, reservationDate, reservationTime } = req.body
-		const guestId = uuidv4();
-		await Reservation.create({ name, phone, partySize, guestId, reservationTime })
 
-		res.status(200).json({
-			message: "Success"
+		let availablePartySize = 48
+		const maxPartySize = 48
+		const date = new Date(parseInt(reservationTime, 10));
+
+		const allOfDateRelatedData = await Reservation.find({ reservationTime: date })
+
+		allOfDateRelatedData.map(val => {
+			availablePartySize = availablePartySize - val.partySize
 		})
+
+		if(availablePartySize){
+			const guestId = uuidv4();
+			await Reservation.create({ name, phone, partySize, guestId, reservationTime })
+
+			res.status(200).json({
+				message: "Success"
+			})
+		}else{
+			res.status(402).json({
+				message: "Not enough available seats"
+			})
+		}
 	} catch (error) {
 		res.status(422)
 		throw new Error('Something went wrong' + error)
@@ -25,7 +42,7 @@ const getTime = asyncHandler(async (req, res) => {
 			let times = []
 			const maxPartySize = 48
 			const start = new Date(`${reservationDate} 10:00:00`)
-			const end = new Date(`${reservationDate} 22:00:00`)
+			const end = new Date(`${reservationDate} 19:00:00`)
 
 			// await Reservation.create({ name: "test", phone: 123456789, partySize: 3, guestId: 1, reservationTime: new Date(reservationDate + " 10:00:00") })
 			// await Reservation.create({ name: "test", phone: 123456789, partySize: 3, guestId: 2, reservationTime: new Date(reservationDate + " 10:00:00") })
@@ -82,4 +99,31 @@ const getTime = asyncHandler(async (req, res) => {
 		throw new Error('Something went wrong' + error)
 	}
 })
-module.exports = { getTime, createReservation }
+
+const getPartySizes = asyncHandler(async (req, res) => {
+	try {
+		const { reservationTime } = req.body
+
+		if (reservationTime) {
+			let availablePartySize = 48
+			const maxPartySize = 48
+			const date = new Date(parseInt(reservationTime, 10));
+
+			const allOfDateRelatedData = await Reservation.find({ reservationTime: date })
+
+			allOfDateRelatedData.map(val => {
+				availablePartySize - val.partySize
+			})
+
+			res.status(200).json({
+				availablePartySize
+			})
+		}
+	} catch (error) {
+		res.status(422)
+		throw new Error('Something went wrong' + error)
+	}
+})
+
+
+module.exports = { getTime, createReservation, getPartySizes }

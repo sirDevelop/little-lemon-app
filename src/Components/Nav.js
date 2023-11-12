@@ -5,6 +5,14 @@ import { faCartArrowDown } from '@fortawesome/free-solid-svg-icons'
 import axios from "axios"
 import { Col, Card } from "react-bootstrap"
 
+// make cookies here in Nav.js
+// update cookies everytime we save to cart
+// write to cookies each time
+//every place we modify the cart, we set cookies. setCart
+// try to add Sweet alerts
+// https://sweetalert2.github.io/
+// import Swal from "sweetalert2"
+
 function Nav({ cart, setCart, menuOptions, setMenuOptions }) {
     const cartRef = useRef()
     const [cartOpen, setCartOpen] = useState()
@@ -54,25 +62,51 @@ function Nav({ cart, setCart, menuOptions, setMenuOptions }) {
                                 if (item.length)
                                     return <>{item[0].title} <button onClick={() => {
                                         setCart([
-                                            // chooses every val item except the current id
-                                            ...cart.filter(val => val.quantity > 1).map(val => {
-                                                if (val.id === item[0]._id){
-                                                    // behavior right now is that it chooses everything and -1 from it, even unselected ones get -1
-                                                    return {id: val.id, quantity: val.quantity === 0 ? 0 : val.quantity - 1 }
+                                            ...cart.filter(
+                                                (valFilter, indexFilter) => (indexFilter ===
+                                                        index && valFilter.quantity >
+                                                            1) || indexFilter !==
+                                                        index).map(
+                                                (
+                                                    valFilter,
+                                                    indexFilter
+                                                ) => {
+                                                    if (
+                                                        indexFilter ===
+                                                        index
+                                                    )
+                                                        return {
+                                                                    ...valFilter,
+                                                                    quantity:
+                                                                        valFilter.quantity -
+                                                                        1,
+                                                                }
+                                                    else
+                                                        return valFilter
                                                 }
-                                                else
-                                                    return val
-                                            })
+                                            ),
                                         ])
                                     }}>-</button>{val.quantity}<button onClick={() => {
                                         setCart([
-                                            // chooses every val item except the current id
-                                            ...cart.map(val => {
-                                                if (val.id === item[0]._id)
-                                                    return { id: val.id, quantity: val.quantity + 1 }
-                                                else
-                                                    return val
-                                            })
+                                            ...cart.map(
+                                                (
+                                                    valFilter,
+                                                    indexFilter
+                                                ) => {
+                                                    if (
+                                                        indexFilter ===
+                                                        index
+                                                    )
+                                                        return {
+                                                            ...valFilter,
+                                                            quantity:
+                                                                valFilter.quantity +
+                                                                1,
+                                                        }
+                                                    else
+                                                        return valFilter
+                                                }
+                                            ),
                                         ])
                                     }}>+</button><br /></>
                                 else return <></>

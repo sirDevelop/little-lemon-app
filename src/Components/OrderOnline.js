@@ -1,25 +1,39 @@
 import axios from "axios"
 import React, { useEffect, useMemo, useRef, useState } from "react"
 import { Form, Button, Container, Row, Col } from "react-bootstrap"
-import { useParams } from "react-router-dom"
+import { useNavigate } from "react-router-dom"
 
-const OrderOnline = ({cart}) => {
+const OrderOnline = ({ cart, menuOptions }) => {
+    let totalPrice = 0.0
+	const navigate = useNavigate()
+	const [name, setName] = useState("")
+	const [phone, setPhone] = useState("")
 	const nameRef = useRef()
 	const phoneRef = useRef()
-	const [orderOption, setOrderOption] = useState({})
-	const [amount, setAmount] = useState(1)
 	const axiosApi = useMemo(() => {
 		return axios.create({ baseURL: "http://localhost:9000/api/" })
 	}, [])
-
-    console.log('cart', cart);
 	const orderOnline = (e) => {
 		e.preventDefault()
-		nameRef.current.focus()
+		if (nameRef.current && phoneRef.current) {
+			if (cart.length) {
+				if (name.length && phone.length) {
+					axiosApi.post("/menuOptions/orderOnline", {
+						cart,
+						name,
+						phone,
+					})
+				} else {
+					nameRef.current.value
+						? phoneRef.current.focus()
+						: nameRef.current.focus()
+				}
+			} else {
+				// alert("your cart is empty")
+				// navigate("/menu")
+			}
+		}
 	}
-	useEffect(() => {
-		// getOrderById(id)
-	}, [])
 
 	return (
 		<Container>
@@ -30,6 +44,8 @@ const OrderOnline = ({cart}) => {
 							<Form.Label>Full Name</Form.Label>
 							<Form.Control
 								ref={nameRef}
+								value={name}
+								onChange={(e) => setName(e.target.value)}
 								type="text"
 								placeholder="Full Name"
 							/>
@@ -40,19 +56,37 @@ const OrderOnline = ({cart}) => {
 							<Form.Label>Phone Number</Form.Label>
 							<Form.Control
 								ref={phoneRef}
+								value={phone}
+								onChange={(e) => setPhone(e.target.value)}
 								type="phone"
 								placeholder="Phone Number"
 							/>
 						</Form.Group>
 					</Col>
-					<Col sm={6}>
-						<Form.Group className="mb-3">
-							<Form.Label>Price</Form.Label>
-							<br />
-							<Form.Text className="text-muted">
-								
-							</Form.Text>
-						</Form.Group>
+					<Col sm={12}>
+						<table className="mx-auto border border-2 shadow">
+							<tr>
+								<td className="p-2 border">Dish Name</td>
+								<td className="p-2 border">Quantity</td>
+								<td className="p-2 border">Price</td>
+							</tr>
+							{cart.map((val,index)=> {
+                                // store inside cookies
+                                // universal-cookies
+                                totalPrice += val.price
+								return <tr key={index}>
+									<td>{val.title}</td>
+									<td>{val.quantity}</td>
+									<td>${val.price}</td>
+								</tr>
+							})}
+							<tr>
+								<td className="p-2 border">Total Price</td>
+								<td></td>
+								<td className="p-2 border">${totalPrice}</td>
+							</tr>
+							
+						</table>
 					</Col>
 				</Row>
 

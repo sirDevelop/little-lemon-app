@@ -6,6 +6,7 @@ import { Link } from "react-router-dom"
 
 const Menu = ({ cart, setCart, menuOptions, setMenuOptions }) => {
 
+    // make cookies here in Menu.js
     return (
         <div className="text-center">
             <Container>
@@ -38,14 +39,14 @@ const Menu = ({ cart, setCart, menuOptions, setMenuOptions }) => {
                                                     setCart([
                                                         // chooses every cart item except the current id
                                                         ...cart,
-                                                        { id: val._id, quantity: quantity }
+                                                        { id: val._id, quantity, title: val.title, price: val.price }
                                                     ])
                                                 } else {
                                                     setCart([
                                                         // chooses every cart item except the current id
                                                         ...cart.map(cartVal => {
                                                             if (cartVal.id === val._id)
-                                                                return { id: val._id, quantity: quantity }
+                                                                return { id: val._id, quantity, title: val.title, price: val.price  }
                                                             else
                                                                 return cartVal
                                                         })

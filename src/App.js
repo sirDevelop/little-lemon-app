@@ -35,7 +35,7 @@ function App() {
 					<Route path="/" element={<Home />} />
 					<Route path="/about" element={<About />} />
 					<Route path="/menu" element={<Menu menuOptions={menuOptions} setMenuOptions={setMenuOptions} cart={cart} setCart={setCart} />} />
-					<Route path="/checkout" element={<OrderOnline cart={cart} />} />
+					<Route path="/checkout" element={<OrderOnline cart={cart} menuOptions={menuOptions} />} />
 					<Route path="/reservation" element={<Reservation />} />
 				</Routes>
 				<Footer />
