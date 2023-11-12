@@ -4,6 +4,7 @@ import Row from "react-bootstrap/Row"
 import Col from "react-bootstrap/Col"
 import { Button, Form } from "react-bootstrap"
 import axios from "axios"
+import Swal from 'sweetalert2'
 
 const Reservation = () => {
 	const axiosApi = axios.create({ baseURL: "http://localhost:9000/api/" })
@@ -49,14 +50,14 @@ const Reservation = () => {
 					val.value.toString() === formData.reservationTime.toString()
 			)
 			if (timeOption.length) {
-					setPartySizeAvailable(
-						`(${timeOption[0].partySize
-							? timeOption[0].partySize
-							: 0
-						} available)`
-					)
+				setPartySizeAvailable(
+					`(${timeOption[0].partySize
+						? timeOption[0].partySize
+						: 0
+					} available)`
+				)
 
-					// if the party size entered is greater than the party size coming from the DB, then set the partysize to max possible
+				// if the party size entered is greater than the party size coming from the DB, then set the partysize to max possible
 				if (
 					formData.partySize >
 					timeOptions.filter(
@@ -90,7 +91,6 @@ const Reservation = () => {
 		let { name, phone, reservationDate, reservationTime, partySize } =
 			Object.fromEntries(new FormData(e.target))
 
-		// By the way there is a bug here. 11/15 16:30 got booked for 56 people
 		axiosApi
 			.post(`reservation/createReservation`, {
 				name,
@@ -100,7 +100,6 @@ const Reservation = () => {
 				reservationTime,
 			})
 			.then((response) => {
-				console.log("response for create reservation", response)
 				// axiosApi
 				// 	.post(`reservation/getPartySizes`, {
 				// 		reservationTime
@@ -113,15 +112,36 @@ const Reservation = () => {
 				// )
 				// setPartySizeAvailable(`${timeOption[0].partySize-formData.partySize ? timeOption[0].partySize-formData.partySize : 0
 				// 		}`)
-				setFormData({
-					name: "",
-					phone: "",
-					reservationDate: "",
-					reservationTime: "",
-					partySize: "",
-				})
-				setPartySizeAvailable("")
-				alert("Succeeded!")
+				
+
+				Swal.fire({
+					title: "Are you sure you want this reservation?",
+					icon: "question",
+					showCancelButton: true,
+					confirmButtonColor: "#28a745",
+					cancelButtonColor: "#d33",
+					confirmButtonText: "Yes!"
+				}).then((result) => {
+					if (result.isConfirmed) {
+						Swal.fire({
+							title: 'Reservation Booked',
+							text: 'You are confirmed! We plan to see you at ' + new Date(parseInt(reservationTime)).toLocaleDateString('en-us', { weekday: "long", month: "short", day: "numeric", hour: "numeric", minute: "numeric", hour12: true }),
+							icon: 'success',
+							confirmButtonText: 'Cya Then'
+						})
+
+						setFormData({
+							name: "",
+							phone: "",
+							reservationDate: "",
+							reservationTime: "",
+							partySize: "",
+						})
+						setPartySizeAvailable("")
+					}
+				});
+
+
 			})
 			.catch((error) => {
 				console.log(error)

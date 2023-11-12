@@ -1,7 +1,7 @@
 const mongoose = require("mongoose")
 const connectDB = async () => {
 	try {
-		const conn = await mongoose.connect('mongodb+srv://little-lemon-user:OXfoU3i4mmG8239p@littlelemoncluster.avskecy.mongodb.net/')
+		const conn = await mongoose.connect('mongodb+srv://little-lemon-user:SK0OcC9Z34IOWHvy@littlelemoncluster.avskecy.mongodb.net/')
 		console.log(`MongoDB connected ${conn.connection.host}`)
 	} catch (error) {
 		console.log(error)
@@ -13,7 +13,7 @@ module.exports = connectDB
 
 
 //username: little-lemon-user
-// password: OXfoU3i4mmG8239p
+// password: SK0OcC9Z34IOWHvy
 
 
 //mongodb+srv://little-lemon-user:<password>@littlelemoncluster.avskecy.mongodb.net/

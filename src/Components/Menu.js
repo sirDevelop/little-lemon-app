@@ -3,10 +3,21 @@ import { Container, Row, Col, Card, Button } from "react-bootstrap"
 import axios from "axios"
 import { BarLoader, BounceLoader } from "react-spinners"
 import { Link } from "react-router-dom"
+import { useCookies } from 'react-cookie';
 
 const Menu = ({ cart, setCart, menuOptions, setMenuOptions }) => {
+    const [cookies, setCookie, removeCookie] = useCookies(['cart']);
+    
+    useEffect(() => {
+        if(cookies.cart.length > 0) {
+            setCart(cookies.cart)
+        }
+      }, [])
 
-    // make cookies here in Menu.js
+    useEffect(() => {
+        setCookie('cart', cart, { path: '/' });
+    }, [cart]);
+
     return (
         <div className="text-center">
             <Container>
@@ -37,7 +48,7 @@ const Menu = ({ cart, setCart, menuOptions, setMenuOptions }) => {
                                                 let quantity = currentOption.length ? currentOption[0].quantity + 1 : 1
                                                 if (quantity === 1) {
                                                     setCart([
-                                                        // chooses every cart item except the current id
+                                                        // ...cart chooses every cart item except the current id
                                                         ...cart,
                                                         { id: val._id, quantity, title: val.title, price: val.price }
                                                     ])
@@ -82,8 +93,6 @@ const Menu = ({ cart, setCart, menuOptions, setMenuOptions }) => {
                                             </Card.Text>
                                         </Card.Body>
                                     </Card>
-
-
                                 </Col>
                             })
                         }</>

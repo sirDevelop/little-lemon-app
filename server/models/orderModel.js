@@ -4,7 +4,7 @@ const orderSchema = mongoose.Schema({
 	cart: {
 		// will be object converted to a string with JSON.stringify
 		type: String,
-		required: [true, 'Please fill the available field'],
+		required: [true, 'Please fill the cart field'],
 	},
 	customer: {
 		type: mongoose.Schema.Types.ObjectId,
@@ -12,11 +12,16 @@ const orderSchema = mongoose.Schema({
 	},
 	name: {
 		type: String,
-		required: [true, 'Please fill the title field'],
+		required: [true, 'Please fill the name field'],
 	},
 	phoneNumber: {
 		type: Number,
-		required: [true, 'Please fill the title field'],
+		required: [true, 'Please fill the phoneNumber field'],
+	},
+	date: {
+		type: Date,
+		default: Date.now,
+		required: [true, 'Please fill the date field'],
 	},
 }, { timestamps: true })
 module.exports = mongoose.model('order', orderSchema)

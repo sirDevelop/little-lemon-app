@@ -4,25 +4,25 @@ import { useRef, useState, useMemo, useEffect } from "react"
 import { faCartArrowDown } from '@fortawesome/free-solid-svg-icons'
 import axios from "axios"
 import { Col, Card } from "react-bootstrap"
-
-// make cookies here in Nav.js
-// update cookies everytime we save to cart
-// write to cookies each time
-//every place we modify the cart, we set cookies. setCart
-// try to add Sweet alerts
-// https://sweetalert2.github.io/
-// import Swal from "sweetalert2"
+import { useCookies } from 'react-cookie';
 
 function Nav({ cart, setCart, menuOptions, setMenuOptions }) {
+    const [cookies, setCookie, removeCookie] = useCookies(['cart']);
     const cartRef = useRef()
     const [cartOpen, setCartOpen] = useState()
     const axiosApi = useMemo(() => {
         return axios.create({ baseURL: "http://localhost:9000/api/" })
     }, [])
 
-	// useEffect(() => {
-	// 	// getOrderById(id)
-	// }, [cart])
+    useEffect(() => {
+        if(cookies.cart && cookies.cart.length > 0) {
+            setCart(cookies.cart)
+        }
+      }, [])
+
+    useEffect(() => {
+        setCookie('cart', cart, { path: '/' });
+    }, [cart]);
 
     return (
         <div className="nav align-items-center">
@@ -42,9 +42,6 @@ function Nav({ cart, setCart, menuOptions, setMenuOptions }) {
                 <li className="mx-2">
                     <Link to="/reservation">Reservations</Link>
                 </li>
-                {/* <li className="mx-2">
-                    <a>Order Online</a>
-                </li> */}
                 <li className="mx-2">
                     <a>Login</a>
                 </li>
@@ -52,11 +49,12 @@ function Nav({ cart, setCart, menuOptions, setMenuOptions }) {
             <div className="cart-wrapper me-auto border border-2 p-2" onClick={(e) => {
                 if (!e.target.classList.contains("cart") && e.target.nodeName !== "BUTTON") setCartOpen(!cartOpen)
             }}>
+                
                 <FontAwesomeIcon icon={faCartArrowDown} />
-                <i className="cart-count">{cart.length}</i>
+                <i className="cart-count">{cart ? cart.length: 0}</i>
                 <div className={`cart border shadow p-3 bg-dark ${cartOpen ? "active" : ""}`}>
                     {
-                        cart.length ?
+                        cart && cart.length ?
                             cart.map((val, index) => {
                                 let item = menuOptions.filter(menuOption => menuOption._id === val.id)
                                 if (item.length)
@@ -64,27 +62,27 @@ function Nav({ cart, setCart, menuOptions, setMenuOptions }) {
                                         setCart([
                                             ...cart.filter(
                                                 (valFilter, indexFilter) => (indexFilter ===
-                                                        index && valFilter.quantity >
-                                                            1) || indexFilter !==
-                                                        index).map(
-                                                (
-                                                    valFilter,
-                                                    indexFilter
-                                                ) => {
-                                                    if (
-                                                        indexFilter ===
-                                                        index
-                                                    )
-                                                        return {
+                                                    index && valFilter.quantity >
+                                                    1) || indexFilter !==
+                                                    index).map(
+                                                        (
+                                                            valFilter,
+                                                            indexFilter
+                                                        ) => {
+                                                            if (
+                                                                indexFilter ===
+                                                                index
+                                                            )
+                                                                return {
                                                                     ...valFilter,
                                                                     quantity:
                                                                         valFilter.quantity -
                                                                         1,
                                                                 }
-                                                    else
-                                                        return valFilter
-                                                }
-                                            ),
+                                                            else
+                                                                return valFilter
+                                                        }
+                                                    ),
                                         ])
                                     }}>-</button>{val.quantity}<button onClick={() => {
                                         setCart([
