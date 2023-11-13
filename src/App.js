@@ -11,31 +11,18 @@ import OrderOnline from "./Components/OrderOnline"
 import axios from "axios"
 
 function App() {
-  const [cart, setCart] = useState([])
-  const axiosApi = useMemo(() => {
-		return axios.create({ baseURL: "http://localhost:9000/api/" })
-	}, [])
-
-	const [menuOptions, setMenuOptions] = useState([])
-
-	useEffect(() => {
-			axiosApi
-				.get("/menuOptions/getMenuOptions")
-				.then((response) => {
-					setMenuOptions(response.data.getAllMenuOptions)
-				})
-	},[])
+  
 
 	return (
 		<>
 			<BrowserRouter>
-				<Nav cart={cart} setCart={setCart} menuOptions={menuOptions} setMenuOptions={setMenuOptions} />
+				<Nav />
 				<Header />
 				<Routes>
 					<Route path="/" element={<Home />} />
 					<Route path="/about" element={<About />} />
-					<Route path="/menu" element={<Menu menuOptions={menuOptions} setMenuOptions={setMenuOptions} cart={cart} setCart={setCart} />} />
-					<Route path="/checkout" element={<OrderOnline cart={cart} setCart={setCart} menuOptions={menuOptions} />} />
+					<Route path="/menu" element={<Menu />} />
+					<Route path="/checkout" element={<OrderOnline />} />
 					<Route path="/reservation" element={<Reservation />} />
 				</Routes>
 				<Footer />

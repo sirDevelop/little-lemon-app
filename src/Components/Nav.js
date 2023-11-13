@@ -5,8 +5,10 @@ import { faCartArrowDown } from '@fortawesome/free-solid-svg-icons'
 import axios from "axios"
 import { Col, Card } from "react-bootstrap"
 import { useCookies } from 'react-cookie';
+import { useGlobals } from "./useGlobals"
 
-function Nav({ cart, setCart, menuOptions, setMenuOptions }) {
+function Nav() {
+    const {cart, setCart, menuOptions, setMenuOptions} = useGlobals()
     const [cookies, setCookie, removeCookie] = useCookies(['cart']);
     const cartRef = useRef()
     const [cartOpen, setCartOpen] = useState()

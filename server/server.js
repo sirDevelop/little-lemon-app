@@ -7,6 +7,7 @@ let port = 9000
 // 		server.listen(port)
 // 	}
 // })
+
 server.once('listening', function () { server.close() })
 server.listen(port)
 server.once('close', function () {

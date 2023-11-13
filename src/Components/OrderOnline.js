@@ -4,8 +4,11 @@ import { Form, Button, Container, Row, Col } from "react-bootstrap"
 import { useNavigate } from "react-router-dom"
 import Swal from 'sweetalert2'
 import { useCookies } from 'react-cookie';
+import { useGlobals } from "./useGlobals"
 
-const OrderOnline = ({ cart, setCart, menuOptions }) => {
+
+const OrderOnline = () => {
+	const {cart, setCart, menuOptions} = useGlobals()
 	let totalPrice = 0.0;
 	const [cookies, setCookie, removeCookie] = useCookies(['cart']);
 	const navigate = useNavigate()
@@ -23,6 +26,7 @@ const OrderOnline = ({ cart, setCart, menuOptions }) => {
 		if (nameRef.current && phoneRef.current) {
 			if (cart.length) {
 				if (name.length && phone.length) {
+
 					const swalWithBootstrapButtons = Swal.mixin({
 						customClass: {
 							confirmButton: "btn btn-success",
@@ -39,24 +43,54 @@ const OrderOnline = ({ cart, setCart, menuOptions }) => {
 						reverseButtons: true
 					}).then((result) => {
 						if (result.isConfirmed) {
-							axiosApi.post("/menuOptions/orderOnline", {
-								cart,
-								name,
-								phone,
-							})
-
 							swalWithBootstrapButtons.fire({
-								title: "Placed!",
-								text: "Thank you for your order! It will be ready in 15-20 minutes.",
-								icon: "success"
-							});
+								title: "Placing your order...",
+								// html: "",
+								allowOutsideClick: () => !swalWithBootstrapButtons.isLoading(),
+								timerProgressBar: true,
+								willClose: (e) => {
+										if(!swalWithBootstrapButtons.isLoading()) {
+											e.preventDefault()
+											return false
+										}
+								},
 
-							//should I redirect to homepage? I am not sure what to do for best UX
-							navigate('/');
-							setCart([])
-							removeCookie('cart', { path: '/' })
-							// clear the cart
+								didOpen: () =>{
+									swalWithBootstrapButtons.showLoading()
+									axiosApi.post("/menuOptions/orderOnline", {
+										cart,
+										name,
+										phone,
+									}).then((response) => {
+										if(response.status === 200){
+											swalWithBootstrapButtons.fire({
+												title: "Placed!",
+												text: "Thank you for your order! It will be ready in 15-20 minutes.",
+												icon: "success"
+											});
 
+											// redirect to home page
+											navigate('/');
+
+											// clear the cart
+											setCart([])
+											removeCookie('cart', { path: '/' })
+										}else{
+											swalWithBootstrapButtons.fire({
+												title: "Something went wrong!",
+												text: "Please try again later or contact us.",
+												icon: "danger"
+											});
+										}	
+									}).catch(() => {
+										swalWithBootstrapButtons.fire({
+											title: "Something went wrong!",
+											text: "Please try again later or contact us.",
+											icon: "danger"
+										});
+									})
+								}
+							})
 						} else if (
 							result.dismiss === Swal.DismissReason.cancel
 						) {
@@ -67,6 +101,10 @@ const OrderOnline = ({ cart, setCart, menuOptions }) => {
 						}
 					});
 				} else {
+					// what does this mean?
+					// useContext, useRef
+					// does nameRef and phoneRef correspond to those input fields? If so, how?
+					// can we talk about useRef hook? And also custom hooks and how/why they are used...
 					nameRef.current.value
 						? phoneRef.current.focus()
 						: nameRef.current.focus()
@@ -127,7 +165,7 @@ const OrderOnline = ({ cart, setCart, menuOptions }) => {
 									<tr>
 										<td className="p-2 border">Total Price</td>
 										<td></td>
-										<td className="p-2 border">${totalPrice}</td>
+										<td className="p-2 border">${Math.round(totalPrice * 100) / 100}</td>
 									</tr>
 								</table>
 

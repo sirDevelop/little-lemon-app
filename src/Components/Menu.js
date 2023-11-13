@@ -4,8 +4,11 @@ import axios from "axios"
 import { BarLoader, BounceLoader } from "react-spinners"
 import { Link } from "react-router-dom"
 import { useCookies } from 'react-cookie';
+import { useGlobals } from "./useGlobals"
 
-const Menu = ({ cart, setCart, menuOptions, setMenuOptions }) => {
+
+const Menu = () => {
+    const {cart, setCart, menuOptions, setMenuOptions} = useGlobals()
     const [cookies, setCookie, removeCookie] = useCookies(['cart']);
     
     useEffect(() => {

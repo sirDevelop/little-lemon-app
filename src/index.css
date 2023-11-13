@@ -51,3 +51,7 @@ body {
 .cart.active{
 	display: block;
 }
+.swal2-actions button{
+	margin-left: 10px;
+	margin-right: 10px;
+}
