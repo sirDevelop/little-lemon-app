@@ -1,6 +1,7 @@
 body {
 	margin: 0;
 }
+
 .nav {
 	width: 100%;
 	height: 150px;
@@ -34,11 +35,13 @@ body {
 	border-color: #99ff00;
 	color: #99ff00;
 }
-.cart-wrapper{
+
+.cart-wrapper {
 	cursor: pointer;
 	position: relative;
 }
-.cart{
+
+.cart {
 	position: absolute;
 	width: 500px;
 	min-height: 300px;
@@ -48,10 +51,31 @@ body {
 	display: none;
 	color: #FFF;
 }
-.cart.active{
+
+.cart.active {
 	display: block;
 }
-.swal2-actions button{
+
+.swal2-actions button {
 	margin-left: 10px;
 	margin-right: 10px;
+}
+
+.customSwalBtn {
+	background-color: rgb(55, 129, 35);
+	border-left-color: rgb(55, 129, 35);
+	border-right-color: rgb(55, 129, 35);;
+	border: 0;
+	border-radius: 3px;
+	box-shadow: none;
+	color: #fff;
+	cursor: pointer;
+	font-size: 17px;
+	font-weight: 500;
+	padding: 10px 32px;
+}
+
+.card:hover {
+	border-color: rgb(0, 0, 0);
+	box-shadow: 30px rgb(0, 0, 0);
 }

@@ -2,9 +2,16 @@ import { useState, useEffect } from "react"
 import Container from "react-bootstrap/Container"
 import Row from "react-bootstrap/Row"
 import Col from "react-bootstrap/Col"
-import { Button, Form } from "react-bootstrap"
+import { Button, Form, InputGroup } from "react-bootstrap"
 import axios from "axios"
-import Swal from 'sweetalert2'
+import Swal from "sweetalert2"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import {
+	faCalendarAlt,
+	faClock,
+	faPhoneAlt,
+	faUserAlt,
+} from "@fortawesome/free-solid-svg-icons"
 
 const Reservation = () => {
 	const axiosApi = axios.create({ baseURL: "http://localhost:9000/api/" })
@@ -51,9 +58,8 @@ const Reservation = () => {
 			)
 			if (timeOption.length) {
 				setPartySizeAvailable(
-					`(${timeOption[0].partySize
-						? timeOption[0].partySize
-						: 0
+					`(${
+						timeOption[0].partySize ? timeOption[0].partySize : 0
 					} available)`
 				)
 
@@ -78,6 +84,7 @@ const Reservation = () => {
 				setFormData({ ...formData, partySize: "" })
 			}
 		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [
 		timeOptions,
 		formData.reservationDate,
@@ -112,7 +119,6 @@ const Reservation = () => {
 				// )
 				// setPartySizeAvailable(`${timeOption[0].partySize-formData.partySize ? timeOption[0].partySize-formData.partySize : 0
 				// 		}`)
-				
 
 				Swal.fire({
 					title: "Are you sure you want this reservation?",
@@ -120,14 +126,25 @@ const Reservation = () => {
 					showCancelButton: true,
 					confirmButtonColor: "#28a745",
 					cancelButtonColor: "#d33",
-					confirmButtonText: "Yes!"
+					confirmButtonText: "Yes!",
 				}).then((result) => {
 					if (result.isConfirmed) {
 						Swal.fire({
-							title: 'Reservation Booked',
-							text: 'You are confirmed! We plan to see you at ' + new Date(parseInt(reservationTime)).toLocaleDateString('en-us', { weekday: "long", month: "short", day: "numeric", hour: "numeric", minute: "numeric", hour12: true }),
-							icon: 'success',
-							confirmButtonText: 'Cya Then'
+							title: "Reservation Booked",
+							text:
+								"You are confirmed! We plan to see you at " +
+								new Date(
+									parseInt(reservationTime)
+								).toLocaleDateString("en-us", {
+									weekday: "long",
+									month: "short",
+									day: "numeric",
+									hour: "numeric",
+									minute: "numeric",
+									hour12: true,
+								}),
+							icon: "success",
+							confirmButtonText: "Cya Then",
 						})
 
 						setFormData({
@@ -139,9 +156,7 @@ const Reservation = () => {
 						})
 						setPartySizeAvailable("")
 					}
-				});
-
-
+				})
 			})
 			.catch((error) => {
 				console.log(error)
@@ -155,13 +170,16 @@ const Reservation = () => {
 					<Col>
 						<Form id="reservationForm" onSubmit={submitForm}>
 							<Row className="mb-3">
-								<Form.Group as={Col}>
-									<Form.Label>Name</Form.Label>
+								<InputGroup as={Col} className="mb-3">
+									<InputGroup.Text className="shadow">
+										<FontAwesomeIcon icon={faUserAlt} />
+									</InputGroup.Text>
 									<Form.Control
-										className="text-center"
+										className="text-center shadow"
 										name="name"
 										type="string"
 										value={formData.name}
+										placeholder="Full name"
 										onChange={(e) => {
 											// setName(e.target.value)
 											setFormData({
@@ -171,14 +189,17 @@ const Reservation = () => {
 										}}
 										required
 									/>
-								</Form.Group>
+								</InputGroup>
 
-								<Form.Group as={Col}>
-									<Form.Label>Phone Number</Form.Label>
+								<InputGroup as={Col} className="mb-3">
+									<InputGroup.Text className="shadow">
+										<FontAwesomeIcon icon={faPhoneAlt} />
+									</InputGroup.Text>
 									<Form.Control
-										className="text-center"
+										className="text-center shadow"
 										name="phone"
 										type="number"
+										placeholder="Phone number"
 										value={formData.phone}
 										onChange={(e) => {
 											// setPhone(e.target.value)
@@ -189,14 +210,16 @@ const Reservation = () => {
 										}}
 										required
 									/>
-								</Form.Group>
+								</InputGroup>
 							</Row>
 
 							<Row className="mb-3">
-								<Form.Group as={Col}>
-									<Form.Label>Date</Form.Label>
+								<InputGroup as={Col} className="mb-3">
+									<InputGroup.Text className="shadow">
+										<FontAwesomeIcon icon={faCalendarAlt} />
+									</InputGroup.Text>
 									<Form.Control
-										className="text-center"
+										className="text-center shadow"
 										name="date"
 										type="date"
 										value={formData.reservationDate}
@@ -209,13 +232,15 @@ const Reservation = () => {
 										}}
 										required
 									/>
-								</Form.Group>
+								</InputGroup>
 
-								<Form.Group as={Col}>
-									<Form.Label>Time</Form.Label>
+								<InputGroup as={Col} className="mb-3">
+									<InputGroup.Text className="shadow">
+										<FontAwesomeIcon icon={faClock} />
+									</InputGroup.Text>
 									<Form.Select
 										name="reservationTime"
-										className="text-center"
+										className="text-center shadow"
 										defaultValue={formData.reservationTime}
 										onChange={(e) =>
 											// setReservationTime(e.target.value)
@@ -234,14 +259,24 @@ const Reservation = () => {
 														(reserved) => {
 															console.log(
 																val.defaultTitle +
-																new Date(
-																	parseInt(
-																		reserved,
-																		10
+																	new Date(
+																		parseInt(
+																			reserved,
+																			10
+																		)
 																	)
-																)
 															)
-															// if(timeOptions.filter(tOptions => tOptions.defaultValue === reserved && tOptions.disabled===true).length){
+															// if (
+															// 	timeOptions.filter(
+															// 		(
+															// 			tOptions
+															// 		) =>
+															// 			tOptions.defaultValue ===
+															// 				reserved &&
+															// 			tOptions.disabled ===
+															// 				true
+															// 	).length
+															// ) {
 															// 	disabledOption = true
 															// }
 														}
@@ -265,7 +300,7 @@ const Reservation = () => {
 											</option>
 										)}
 									</Form.Select>
-								</Form.Group>
+								</InputGroup>
 							</Row>
 							<Row className="mb-3">
 								<Form.Group as={Col}>
@@ -273,7 +308,7 @@ const Reservation = () => {
 										Party Size {partySizeAvailable}
 									</Form.Label>
 									<Form.Control
-										className="text-center"
+										className="text-center shadow"
 										name="partySize"
 										onChange={(e) => {
 											if (e.target.value > 0)

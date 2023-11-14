@@ -17,7 +17,7 @@ const loginUser = asyncHandler(async (req, res) => {
 			res.clearCookie("lt")
 		}
 		let emailFromFrontEnd = email.toLowerCase()
-		const user = await User.findOne({ $or: [{ email: username }] })
+		const user = await User.findOne({ $or: [{ username: emailFromFrontEnd },{ email: emailFromFrontEnd }] })
 		if (user && (await bcrypt.compare(password, user.password))) {
 			const token = generateToken(user._id)
 			const csrfSecret = await csrf.secret()
@@ -65,6 +65,7 @@ const getUser = asyncHandler(async (req, res) => {
 
 const logoutUser = asyncHandler(async (req, res) => {
 	if (req.cookies.lt) {
+		// delete the server side object which stores the cookie for that user from mongoDB once we are logged out
 		await Token.findOneAndDelete({ lt: req.cookies.lt, active: true })
 		res.clearCookie("lt")
 		res.status(200).json({})
@@ -73,14 +74,14 @@ const logoutUser = asyncHandler(async (req, res) => {
 
 const registerUser = asyncHandler(async (req, res) => {
 	const { firstname, lastname, email, password } = req.body
-	if ((!firstname || !lastname || !email) && !password) {
+	if (!firstname && !lastname, !email && !password) {
 		res.status(400)
 		throw new Error('Please fill all fields')
 	}
 
-	let lfName = firstname.toLowerCase(), llName = lastname.toLowerCase(), lEmail = email.toLowerCase()
+	let lfname = firstname.toLowerCase(), llname = lastname.toLowerCase(), lemail = email.toLowerCase()
 
-	const userExist = await User.findOne({ $or: [{ email: lEmail }] })
+	const userExist = await User.findOne({ $or: [{ email }] })
 	if (userExist) {
 		res.status(400)
 		throw new Error('User already exists')
@@ -89,7 +90,7 @@ const registerUser = asyncHandler(async (req, res) => {
 	const salt = await bcrypt.genSalt(10)
 	const hashedPassword = await bcrypt.hash(password, salt)
 
-	const user = await User.create({ firstname: lfName, lastname: llName, email: lEmail, password: hashedPassword })
+	const user = await User.create({ firstname: lfname, lastname: llname, email: lemail, password: hashedPassword })
 
 	if (user) {
 		res.status(201).json({

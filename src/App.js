@@ -1,23 +1,19 @@
-import {useState,useMemo,useEffect} from "react"
-import Header from "./Header"
-import Nav from "./Components/Nav"
-import Reservation from "./Components/Reservation"
+import Navigation from "./Components/Navigation"
+import Reservation from "./Pages/Reservation"
 import Menu from "./Components/Menu"
-import About from "./Components/About"
-import Home from "./Components/Home"
+import About from "./Pages/About"
+import Home from "./Pages/Home"
 import Footer from "./Components/Footer"
 import { BrowserRouter, Routes, Route } from "react-router-dom"
-import OrderOnline from "./Components/OrderOnline"
-import axios from "axios"
+import OrderOnline from "./Pages/OrderOnline"
+import Cart from "./Components/Cart"
+import { Container } from "react-bootstrap"
 
 function App() {
-  
-
 	return (
-		<>
-			<BrowserRouter>
-				<Nav />
-				<Header />
+		<div className="d-flex flex-column min-vh-100">
+			<Navigation />
+			<Container className="my-5">
 				<Routes>
 					<Route path="/" element={<Home />} />
 					<Route path="/about" element={<About />} />
@@ -25,9 +21,10 @@ function App() {
 					<Route path="/checkout" element={<OrderOnline />} />
 					<Route path="/reservation" element={<Reservation />} />
 				</Routes>
-				<Footer />
-			</BrowserRouter>
-		</>
+			</Container>
+			<Cart />
+			<Footer />
+		</div>
 	)
 }
 
