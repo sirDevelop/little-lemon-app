@@ -52,7 +52,7 @@ const Cart = () => {
 				<Offcanvas.Title>Cart</Offcanvas.Title>
 			</Offcanvas.Header>
 			<Offcanvas.Body className="text-center">
-				<ListGroup as="ol" className="text-start">
+				<ListGroup as="ol" key={1} className="text-start">
 					{cart && cart.length ? (
 						cart.map((val, index) => {
 							let item = menuOptions.filter(
@@ -60,49 +60,48 @@ const Cart = () => {
 							)
 							if (item.length)
 								return (
-									<>
-										<ListGroup.Item
-											as="li"
-											className="d-flex justify-content-between align-items-start"
-										>
-											<div className="ms-2 me-auto">
-												<div className="fw-bold">
-													{item[0].title}
-												</div>
+									<ListGroup.Item
+										key={index}
+										as="li"
+										className="d-flex justify-content-between align-items-start"
+									>
+										<div className="ms-2 me-auto">
+											<div className="fw-bold">
+												{item[0].title}
 											</div>
-											<div className="ms-2 text-end">
-												<div className="fw-bold">
-													<ButtonGroup>
-														<Button
-															variant="primary"
-															onClick={() => {
-																modifyCart(
-																	index,
-																	"remove"
-																)
-															}}
-														>
-															-
-														</Button>
-														<Button variant="outline-primary">
-															{val.quantity}
-														</Button>
-														<Button
-															variant="primary"
-															onClick={() => {
-																modifyCart(
-																	index,
-																	"add"
-																)
-															}}
-														>
-															+
-														</Button>
-													</ButtonGroup>
-												</div>
+										</div>
+										<div className="ms-2 text-end">
+											<div className="fw-bold">
+												<ButtonGroup>
+													<Button
+														variant="primary"
+														onClick={() => {
+															modifyCart(
+																index,
+																"remove"
+															)
+														}}
+													>
+														-
+													</Button>
+													<Button variant="outline-primary">
+														{val.quantity}
+													</Button>
+													<Button
+														variant="primary"
+														onClick={() => {
+															modifyCart(
+																index,
+																"add"
+															)
+														}}
+													>
+														+
+													</Button>
+												</ButtonGroup>
 											</div>
-										</ListGroup.Item>
-									</>
+										</div>
+									</ListGroup.Item>
 								)
 							else return <></>
 						})

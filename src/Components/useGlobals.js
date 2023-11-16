@@ -1,9 +1,9 @@
 import React, { useContext, useState, useEffect, useMemo } from "react"
-import { useNavigate } from "react-router-dom"
 import axios from "axios"
 import Swal from "sweetalert2"
 import { useCookies } from "react-cookie"
-
+import {useLocation} from "react-router-dom"
+import { useNavigate } from "react-router-dom"
 
 const GlobalsContent = React.createContext()
 
@@ -12,30 +12,39 @@ export function useGlobals() {
 }
 
 const GlobalsComponent = ({ children }) => {
+const navigate = useNavigate()
+	const pathName = useLocation().pathname
 	const [cookie, setCookie, removeCookie] = useCookies(["cart"])
 	const [cartOpen, setCartOpen] = useState(false)
 	const [cart, setCart] = useState([])
-	const axiosApi = useMemo(() => {
-		return axios.create({ baseURL: "http://localhost:9000/api/" })
-	}, [])
+
+	const authApi = useMemo(() => {
+		const authApiOptions = cookie.cs ? {
+			baseURL: "http://localhost:9000/api",
+			withCredentials: true,
+			headers: {
+				Authorization: `Bearer ${cookie.cs}`,
+			},
+		}:{baseURL: "http://localhost:9000/api"}
+
+		return axios.create(authApiOptions)
+	}, [cookie.cs])
 
 	const [menuOptions, setMenuOptions] = useState([])
 
 	useEffect(() => {
-		axiosApi
+		authApi
 			.get("/menuOptions/getMenuOptions")
 			.then((response) => {
 				setMenuOptions(response.data.getAllMenuOptions)
 			})
 			.catch((error) => {
-				alert("something went wrong")
+				console.log("something went wrong" + error)
 			})
 	}, [])
 
-
 	// login
 
-	const navigate = useNavigate()
 	const Toast = Swal.mixin({
 		toast: true,
 		position: "top-end",
@@ -55,18 +64,13 @@ const GlobalsComponent = ({ children }) => {
 	const [loggedIn, setLoggedIn] = useState()
 
 	// autologin if the cookie gets stored in the frontend
-	const authApi = axios.create({
-		baseURL: "http://localhost:9000/",
-		withCredentials: true,
-		headers: {
-			Authorization: `Bearer ${cookie.cs}`,
-		},
-	})
+	
 
 	useEffect(() => {
 		if (loggedIn === undefined && !loadingLogin) {
+			setLoadingLogin(true)
 			authApi
-				.get(`/api/users/get/`)
+				.get(`/users/get/`)
 				.then((data) => {
 					setUser(data)
 					setLoggedIn(true)
@@ -74,6 +78,7 @@ const GlobalsComponent = ({ children }) => {
 				.catch(() => {
 					setLoggedIn(false)
 				})
+				.finally(() => setLoadingLogin(false))
 		}
 	}, [authApi, loadingLogin, loggedIn, user])
 
@@ -84,114 +89,187 @@ const GlobalsComponent = ({ children }) => {
 	// when client receives it, client stores it as a cookie with setCookie("cs")
 	// when cookies is stored, we will autologin next time
 
+	// state(variable/object) for form data (firstname,lastname,email,password)
 	const [formData, setFormData] = useState({})
-	const [isLogin, setIsLogin] = useState(false)
-
+	const swalWithBootstrapButtons = Swal.mixin({
+		customClass: {
+			confirmButton: "btn btn-success",
+			cancelButton: "btn btn-dark",
+			denyButton: "btn btn-warning",
+		},
+		buttonsStyling: false,
+	})
 	const openLogin = () => {
-		setIsLogin(true);
-		const swalWithBootstrapButtons = Swal.mixin({
-			customClass: {
-			  confirmButton: "btn btn-success",
-			  cancelButton: "btn btn-warning"
-			},
-			buttonsStyling: false
-		  });
-
-		const { value: formValues } = swalWithBootstrapButtons.fire({
-			html:
-			`<input id="swal-input1" type="email" placeholder="Email" class="swal2-input" required>
-			<input id="swal-input2" type="password" placeholder="Password" class="swal2-input" required>`
-			,
-			confirmButtonText:
-				`Login`,
-			showCancelButton: true,
-			cancelButtonText: "Create New Account",
-			focusConfirm: false,
-			preConfirm: () => {
-				setFormData({ email: document.getElementById("swal-input1").value, password: document.getElementById("swal-input2").value })
-				// validate the form data and then return true
-				return true
-			}
-		}).then((result) => {
-			if (result.isConfirmed) {
-				if (formData.email && formData.password) {
-					Swal.fire({
-						didOpen: () => {
-							Swal.showLoading()
-						}
+		swalWithBootstrapButtons
+			.fire({
+				html: `<input id="swal-input1" type="email" placeholder="Email" class="swal2-input" required>
+			<input id="swal-input2" type="password" placeholder="Password" class="swal2-input" required>`,
+				confirmButtonText: `Login`,
+				showCancelButton: true,
+				cancelButtonText: "Cancel",
+				denyButtonText: "Create New Account",
+				showDenyButton: true,
+				focusConfirm: false,
+				preConfirm: () => {
+					setFormData({
+						email: document.getElementById("swal-input1").value,
+						password: document.getElementById("swal-input2").value,
+						type: "login",
 					})
-				} else {
-					Swal.fire({
-						icon: "error",
-						title: "Please enter a valid email and password",
-					})
+					return [
+						document.getElementById("swal-input1").value,
+						document.getElementById("swal-input2").value,
+					]
+				},
+			})
+			.then((result) => {
+				if (result.isConfirmed) {
+					if (
+						result.value[0] &&
+						result.value[1] &&
+						result.value[0].length &&
+						result.value[0].length
+					) {
+						swalWithBootstrapButtons.fire({
+							didOpen: () => {
+								swalWithBootstrapButtons.showLoading()
+							},
+						})
+					} else {
+						swalWithBootstrapButtons
+							.fire({
+								icon: "error",
+								title: "Please enter a valid email and password",
+							})
+							.then(() => {
+								openLogin()
+							})
+					}
+				} else if (result.isDenied) {
+					// create new account
+					openRegister()
+				} else if (result.isDismissed) {
+					// close the modal
+					if(pathName.indexOf("user") !== -1) navigate("/")
+					swalWithBootstrapButtons.close()
 				}
-			} else if (result.isDismissed) {
-				createNewAccount()
-			}
-		})
+			})
 	}
-	// do the register later today
-	useEffect(() => {
-		console.log(isLogin);
-		if (formData && formData.email && formData.password && isLogin) {
-			login(formData.email, formData.password)
-			console.log(1)
-		} else if (formData && formData.email && formData.password && formData.firstname && formData.lastname && !isLogin) {
-			register(formData.firstname, formData.lastname, formData.email, formData.password)
-		}
-	}, [formData])
 
-	// code doesnt work not sure why
-	const createNewAccount = () => {
-		setIsLogin(false);
-		const { value: formValues } = Swal.fire({
-			html:
-			`<input id="swal-input1" placeholder="First Name" class="swal2-input" required>
+	const openRegister = () => {
+		swalWithBootstrapButtons
+			.fire({
+				html: `<input id="swal-input1" placeholder="First Name" class="swal2-input" required>
 			<input id="swal-input2" placeholder="Last Name" class="swal2-input" required>
 			<input id="swal-input3" type=email placeholder="Email" class="swal2-input" required>
-			<input id="swal-input4" type="password" placeholder="Password" class="swal2-input" required>`
-			,
-			confirmButtonText:
-				`Create Account`,
-			focusConfirm: false,
-			preConfirm: () => {
-				setFormData({ firstname: document.getElementById("swal-input1").value, lastname: document.getElementById("swal-input2").value, email: document.getElementById("swal-input3").value, password: document.getElementById("swal-input4").value })
-				// validate the form data and then return true
-				return true
-			}
-		}).then((result) => {
-			if (result.isConfirmed) {
-				console.log('formData', formData)
-				if (formData.firstname && formData.lastname && formData.email && formData.password) {
-					Swal.fire({
-						didOpen: () => {
-							Swal.showLoading()
-						}
+			<input id="swal-input4" type="password" placeholder="Password" class="swal2-input" required>`,
+				confirmButtonText: `Create New Account`,
+				showCancelButton: true,
+				cancelButtonText: "Cancel",
+				denyButtonText: "Back to Login",
+				showDenyButton: true,
+				focusConfirm: false,
+				preConfirm: () => {
+					setFormData({
+						firstname: document.getElementById("swal-input1").value,
+						lastname: document.getElementById("swal-input2").value,
+						email: document.getElementById("swal-input3").value,
+						password: document.getElementById("swal-input4").value,
+						type: "register",
 					})
-				} else {
-					Swal.fire({
-						icon: "error",
-						title: "Please enter valid inputs",
-					})
+					// validate the form data and then return true
+					return [
+						document.getElementById("swal-input1").value,
+						document.getElementById("swal-input2").value,
+						document.getElementById("swal-input3").value,
+						document.getElementById("swal-input4").value,
+					]
+				},
+			})
+			.then((result) => {
+				if (result.isConfirmed) {
+					if (
+						result.value[0] &&
+						result.value[1] &&
+						result.value[2] &&
+						result.value[3] &&
+						result.value[0].length &&
+						result.value[1].length &&
+						result.value[2].length &&
+						result.value[3].length
+					) {
+						swalWithBootstrapButtons.fire({
+							didOpen: () => {
+								swalWithBootstrapButtons.showLoading()
+							},
+						})
+					} else {
+						swalWithBootstrapButtons
+							.fire({
+								icon: "error",
+								title: "Please enter a valid email and password",
+							})
+							.then(() => {
+								openRegister()
+							})
+					}
+				} else if (result.isDenied) {
+					openLogin()
+				} else if (result.isDismissed) {
+					if(pathName.indexOf("user") !== -1) navigate("/")
+					swalWithBootstrapButtons.close()
 				}
-			}
-		})
+			})
 	}
+	
+	useEffect(() => {
+		if (formData) {
+			switch (formData.type) {
+				case "login":
+					if (
+						formData.email &&
+						formData.password &&
+						formData.email.length &&
+						formData.password.length
+					) {
+						login(formData.email, formData.password)
+					}
+					break
+
+				case "register":
+					if (
+						formData.email &&
+						formData.password &&
+						formData.firstname &&
+						formData.lastname
+					) {
+						register(
+							formData.firstname,
+							formData.lastname,
+							formData.email,
+							formData.password
+						)
+					}
+					break
+				default:
+			}
+		}
+	}, [formData])
 	const login = (email, pass) => {
 		if (email.length && pass.length) {
 			if (!loadingLogin) {
 				setLoadingLogin(true)
 				authApi
-					.post(`/api/users/login/`, { email, password: pass })
+					.post(`/users/login/`, { email, password: pass })
 					.then((response) => {
+						console.log('response', response)
 						setUser(response)
 						setCookie("cs", response.data.csrf, {
-							path: "/", sameSite: "Strict",
-							secure: true
+							path: "/",
+							sameSite: "Strict",
+							secure: true,
 						})
 						setLoggedIn(true)
-						navigate("/")
 						Toast.fire({
 							icon: "success",
 							title: "Successfully logged in",
@@ -209,19 +287,34 @@ const GlobalsComponent = ({ children }) => {
 			}
 		}
 	}
-	const register = (firstname, lastname, email, pass) => {
-		if (firstname.length && lastname.length && email.length && pass.length) {
+	const register = (firstname, lastname, email, password) => {
+		if (
+			firstname.length &&
+			lastname.length &&
+			email.length &&
+			password.length
+		) {
 			if (!loadingLogin) {
 				setLoadingLogin(true)
 				authApi
-					.post(`/api/users/register/`, { firstname, lastname, email, pass })
+					.post(`/users/register/`, {
+						firstname,
+						lastname,
+						email,
+						password,
+					})
 					.then((response) => {
 						setUser({ ...user, email: response.data.email })
 						setCookie("cs", response.data.csrf, {
-							path: "/", sameSite: "Strict",
-							secure: true
+							path: "/",
+							sameSite: "Strict",
+							secure: true,
 						})
 						setLoggedIn(true)
+						Toast.fire({
+							icon: "success",
+							title: "Successfully registered and logged in",
+						})
 					})
 					.catch(() => {
 						Toast.fire({
@@ -238,13 +331,13 @@ const GlobalsComponent = ({ children }) => {
 	const logout = () => {
 		if (!loadingLogin) {
 			authApi
-				.get(`/api/users/logout/`)
+				.get(`/users/logout/`)
 				.then(() => {
 					setUser({})
 					setLoggedIn(false)
 
 					// we remove the authentication cookie
-					removeCookie("cs", { path: "/", })
+					removeCookie("cs", { path: "/" })
 				})
 				.catch(() => {
 					Toast.fire({
@@ -257,7 +350,6 @@ const GlobalsComponent = ({ children }) => {
 
 	// login
 
-
 	return (
 		<GlobalsContent.Provider
 			value={{
@@ -265,11 +357,15 @@ const GlobalsComponent = ({ children }) => {
 				setCart,
 				menuOptions,
 				setMenuOptions,
-				axiosApi,
+				authApi,
 				cartOpen,
 				setCartOpen,
 				openLogin,
-				loggedIn
+				loggedIn,
+				loadingLogin,
+				logout,
+				user,
+				setUser
 			}}
 		>
 			{children}

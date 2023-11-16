@@ -4,10 +4,11 @@ import Menu from "./Components/Menu"
 import About from "./Pages/About"
 import Home from "./Pages/Home"
 import Footer from "./Components/Footer"
-import { BrowserRouter, Routes, Route } from "react-router-dom"
+import { Routes, Route } from "react-router-dom"
 import OrderOnline from "./Pages/OrderOnline"
 import Cart from "./Components/Cart"
 import { Container } from "react-bootstrap"
+import User from "./Pages/User"
 
 function App() {
 	return (
@@ -20,6 +21,7 @@ function App() {
 					<Route path="/menu" element={<Menu />} />
 					<Route path="/checkout" element={<OrderOnline />} />
 					<Route path="/reservation" element={<Reservation />} />
+					<Route path="/user" element={<User />} />
 				</Routes>
 			</Container>
 			<Cart />

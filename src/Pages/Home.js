@@ -68,7 +68,7 @@ const Home = () => {
 					{
 						sectionInfo.map((val, i) => {
 							return (
-								<Row className="">
+								<Row className="" key={i}>
 									<Col
 										lg={12}
 										className="p-2 d-flex flex-wrap"

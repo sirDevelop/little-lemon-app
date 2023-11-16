@@ -18,10 +18,5 @@ const orderSchema = mongoose.Schema({
 		type: Number,
 		required: [true, 'Please fill the phoneNumber field'],
 	},
-	date: {
-		type: Date,
-		default: Date.now,
-		required: [true, 'Please fill the date field'],
-	},
 }, { timestamps: true })
 module.exports = mongoose.model('order', orderSchema)

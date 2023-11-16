@@ -7,7 +7,6 @@ const createReservation = asyncHandler(async (req, res) => {
 		const { name, phone, partySize, reservationDate, reservationTime } = req.body
 
 		let availablePartySize = 48
-		const maxPartySize = 48
 		const date = new Date(parseInt(reservationTime, 10));
 
 		const allOfDateRelatedData = await Reservation.find({ reservationTime: date })
@@ -17,8 +16,10 @@ const createReservation = asyncHandler(async (req, res) => {
 		})
 
 		if(availablePartySize){
-			const guestId = uuidv4();
-			await Reservation.create({ name, phone, partySize, guestId, reservationTime })
+			if(req.user)
+				await Reservation.create({ name, phone, partySize, customer: req.user._id, reservationTime, reservationNumber: uuidv4() })
+			else
+				await Reservation.create({ name, phone, partySize, reservationTime, reservationNumber: uuidv4() })
 
 			res.status(200).json({
 				message: "Success"
@@ -125,5 +126,15 @@ const getPartySizes = asyncHandler(async (req, res) => {
 	}
 })
 
+const getReservationHistory = asyncHandler(async (req, res) => {
+    try {
+        const Reservations = await Reservation.find({ customer: req.user._id })
+        console.log('Reservations', Reservations);
+        res.status(200).json({ Reservations })
+    } catch (error) {
+        res.status(422)
+        throw new Error('Something went wrong' + error)
+    }
+})
 
-module.exports = { getTime, createReservation, getPartySizes }
+module.exports = { getTime, createReservation, getPartySizes, getReservationHistory }

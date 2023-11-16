@@ -17,7 +17,7 @@ const loginUser = asyncHandler(async (req, res) => {
 			res.clearCookie("lt")
 		}
 		let emailFromFrontEnd = email.toLowerCase()
-		const user = await User.findOne({ $or: [{ username: emailFromFrontEnd },{ email: emailFromFrontEnd }] })
+		const user = await User.findOne({ $or: [{ email: emailFromFrontEnd }] })
 		if (user && (await bcrypt.compare(password, user.password))) {
 			const token = generateToken(user._id)
 			const csrfSecret = await csrf.secret()
@@ -59,11 +59,12 @@ const getUser = asyncHandler(async (req, res) => {
 		})
 	} catch (error) {
 		res.status(422)
-		throw new Error(`Something went wrong`)
+		throw new Error(`Something went wrong getting the user ${error}`)
 	}
 })
 
 const logoutUser = asyncHandler(async (req, res) => {
+	// unauthorized.... why??
 	if (req.cookies.lt) {
 		// delete the server side object which stores the cookie for that user from mongoDB once we are logged out
 		await Token.findOneAndDelete({ lt: req.cookies.lt, active: true })
@@ -74,7 +75,7 @@ const logoutUser = asyncHandler(async (req, res) => {
 
 const registerUser = asyncHandler(async (req, res) => {
 	const { firstname, lastname, email, password } = req.body
-	if (!firstname && !lastname, !email && !password) {
+	if (!firstname && !lastname && !email && !password) {
 		res.status(400)
 		throw new Error('Please fill all fields')
 	}
@@ -92,12 +93,22 @@ const registerUser = asyncHandler(async (req, res) => {
 
 	const user = await User.create({ firstname: lfname, lastname: llname, email: lemail, password: hashedPassword })
 
+	const token = generateToken(user._id)
+	const csrfSecret = await csrf.secret()
+	const csrfToken = csrf.create(csrfSecret)
+	// await Token.updateMany({ user: user.id }, { active: false })
+
+	await Token.create({ user: user.id, lt: token, cs: csrfSecret })
+
+	res.cookie('lt', token, { path: '/', sameSite: 'Strict', maxAge: 99999999 })
+
 	if (user) {
 		res.status(201).json({
 			_id: user._id,
 			firstname: user.firstname,
 			lastname: user.lastname,
 			email: user.email,
+			csrf: csrfToken,
 			token: generateToken(user._id)
 		})
 	} else {
@@ -106,10 +117,56 @@ const registerUser = asyncHandler(async (req, res) => {
 	}
 })
 
+const editProfile = asyncHandler(async (req, res) => {
+	try{
+		const { formData } = req.body
+		if (!formData.firstName || !formData.lastName || !formData.email) {
+			res.status(400)
+			throw new Error('Please fill all fields')
+		}
+		const {firstName, lastName, email} = formData
+		let lfname = firstName.toLowerCase(), llname = lastName.toLowerCase(), lemail = email.toLowerCase()
+
+		const userExist = await User.findOne({ $or: [{ email }] })
+		if (userExist && req.user.email !== email) {
+			res.status(400)
+			throw new Error('User already exists')
+		}
+
+		let user
+
+		if(formData.password && formData.changePassword){
+			const {password} = formData
+			const salt = await bcrypt.genSalt(10)
+			const hashedPassword = await bcrypt.hash(password, salt)
+			user = await User.findOneAndUpdate({id: req.user._id}, { firstname: lfname, lastname: llname, email: lemail, password: hashedPassword })
+		}else{
+			user = await User.findOneAndUpdate({id: req.user._id}, { firstname: lfname, lastname: llname, email: lemail })
+		}
+
+		if (user) {
+			res.status(201).json({
+				_id: user._id,
+				firstname: user.firstname,
+				lastname: user.lastname,
+				email: user.email,
+				token: generateToken(user._id)
+			})
+		} else {
+			res.status(400)
+			throw new Error('Invalid user data')
+		}
+	} catch (error) {
+		res.status(422)
+		throw new Error(`Something went wrong ${error}`)
+	}
+})
+
+// this creates an encrypted token (jwt.sign). Token related to user ID
 const generateToken = (id) => {
 	return jwt.sign({ id }, 'abc123', {
 		expiresIn: '30d'
 	})
 }
 
-module.exports = { registerUser, loginUser, logoutUser, getUser }
+module.exports = { registerUser, loginUser, logoutUser, getUser, editProfile }

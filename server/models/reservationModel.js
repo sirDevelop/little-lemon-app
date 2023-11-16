@@ -36,20 +36,24 @@ const reservationSchema = mongoose.Schema({
 	},
 	phone: {
 		type: Number,
-		required: [true, 'Please fill the name field'],
+		required: [true, 'Please fill the phone field'],
 	},
 	partySize: {
 		type: Number,
-		required: [true, 'Please fill the name field'],
+		required: [true, 'Please fill the partySize field'],
 	},
-	guestId: {
-		type: String,
-		required: [true, 'Please fill the name field'],
-		unique: true
+	customer: {
+		type: mongoose.Schema.Types.ObjectId,
+		ref: 'User'
 	},
 	reservationTime: {
 		type: Date,
-		required: [true, 'Please fill the name field'],
+		required: [true, 'Please fill the reservationTime field'],
+	},
+	reservationNumber: {
+		type: String,
+		required: [true, 'Please fill the reservation field'],
+		unique: true
 	}
 }, { timestamps: true })
 module.exports = mongoose.model('Reservation', reservationSchema)

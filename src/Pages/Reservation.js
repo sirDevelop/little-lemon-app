@@ -3,7 +3,6 @@ import Container from "react-bootstrap/Container"
 import Row from "react-bootstrap/Row"
 import Col from "react-bootstrap/Col"
 import { Button, Form, InputGroup } from "react-bootstrap"
-import axios from "axios"
 import Swal from "sweetalert2"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
@@ -12,9 +11,10 @@ import {
 	faPhoneAlt,
 	faUserAlt,
 } from "@fortawesome/free-solid-svg-icons"
+import { useGlobals } from "../Components/useGlobals"
 
 const Reservation = () => {
-	const axiosApi = axios.create({ baseURL: "http://localhost:9000/api/" })
+	const {authApi} = useGlobals()
 	const [timeOptions, setTimeOptions] = useState([])
 	const [partySizeAvailable, setPartySizeAvailable] = useState("")
 	const [formData, setFormData] = useState({
@@ -31,13 +31,12 @@ const Reservation = () => {
 			formData.reservationDate !== "Choose..."
 		) {
 			setTimeOptions([{ title: "Loading ...", value: "Choose..." }])
-			axiosApi
+			authApi
 				.post(`reservation/getTime`, {
 					reservationDate: formData.reservationDate,
 					partySize: formData.partySize > 0 ? formData.partySize : 1,
 				})
 				.then((response) => {
-					console.log(response)
 					setTimeOptions([
 						{ title: "Please choose time", value: "Choose..." },
 						...response.data.times,
@@ -98,7 +97,7 @@ const Reservation = () => {
 		let { name, phone, reservationDate, reservationTime, partySize } =
 			Object.fromEntries(new FormData(e.target))
 
-		axiosApi
+		authApi
 			.post(`reservation/createReservation`, {
 				name,
 				phone,
@@ -107,7 +106,7 @@ const Reservation = () => {
 				reservationTime,
 			})
 			.then((response) => {
-				// axiosApi
+				// authApi
 				// 	.post(`reservation/getPartySizes`, {
 				// 		reservationTime
 				// 	})
@@ -157,9 +156,6 @@ const Reservation = () => {
 						setPartySizeAvailable("")
 					}
 				})
-			})
-			.catch((error) => {
-				console.log(error)
 			})
 	}
 

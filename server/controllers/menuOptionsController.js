@@ -1,12 +1,15 @@
 const asyncHandler = require('express-async-handler')
 const MenuOptions = require('../models/menuOptionsModel')
 const Order = require('../models/orderModel')
+const Reservation = require('../models/reservationModel')
+const jwt = require('jsonwebtoken')
+const csrf = require('csrf')()
+const User = require('../models/userModel')
+const Token = require('../models/tokenModel')
 
 const getMenuOptions = asyncHandler(async (req, res) => {
     try {
         const getAllMenuOptions = await MenuOptions.find();
-        console.log("getAllMenuOptions", getAllMenuOptions)
-        //online we will display unavailable if not available
 
         // await MenuOptions.create({title: "Gourmet Grilled Hotdog Extravaganza", imageURL: "./images/hotdog1.jpg", price: "5.99", description: "Indulge in the ultimate hotdog experience with our Gourmet Grilled Hotdog Extravaganza! Crafted with passion and a dash of creativity, our mouthwatering creation promises to tantalize your taste buds. Served with a side of perfectly seasoned fries, our Gourmet Grilled Hotdog Extravaganza is not just a meal—it's a symphony of flavors that will make your taste buds sing!", available: true})
         // await MenuOptions.create({title: "Artisanal Bread Basket Delight", imageURL: "./images/bread1.jpg", price: "2.99", description: "Embark on a journey of flavor with our Artisanal Bread Basket, a selection curated to elevate your dining experience. Baked with passion and precision, each variety is a testament to the craftsmanship of our skilled bakers. Accompanied by a selection of whipped herb butter, extra virgin olive oil, and aged balsamic vinegar, our Artisanal Bread Basket is the perfect prelude to a memorable dining experience—where every bite tells a story of craftsmanship and dedication.", available: true})
@@ -28,24 +31,12 @@ const getMenuOptions = asyncHandler(async (req, res) => {
         // await MenuOptions.create({title: "Strawberry Fields Muffin", imageURL: "./images/strawberry-muffin.png", price: "10.99", description: "Indulge in the sweet embrace of our Strawberry Fields Muffin, a delectable creation that captures the essence of summer in every bite. This moist and tender muffin is generously studded with plump, succulent strawberries, offering bursts of natural sweetness with each mouthful. The delicate crumb texture and buttery undertones provide a perfect canvas for the vibrant strawberry flavor to shine. Topped with a light dusting of powdered sugar, each Strawberry Fields Muffin is a delightful balance of fruity goodness and bakery perfection, making it an irresistible treat for breakfast, brunch, or a delightful anytime snack.", available: true})
         // await MenuOptions.create({title: "Heavenly Tiramisu", imageURL: "./images/tiramisu.png", price: "5.99", description: "Introducing our Heavenly Tiramisu, a classic Italian dessert that embodies the epitome of indulgence. Layers of delicate ladyfingers are meticulously soaked in rich espresso and expertly layered with a velvety mascarpone cream, creating a symphony of textures and flavors. Dustings of premium cocoa powder dance atop the luscious mascarpone, adding a subtle bitterness that beautifully balances the sweetness. Each spoonful unveils a harmonious marriage of coffee-infused richness and the ethereal lightness of mascarpone, making our Heavenly Tiramisu an exquisite finale to any meal or a standalone decadent delight for those seeking a taste of authentic Italian bliss.", available: true})
 
-
-
         res.status(200).json({
             getAllMenuOptions
         })
-        // await Reservation.create({ name: "test", phone: 123456789, partySize: 3, guestId: 1, reservationTime: new Date(reservationDate + " 10:00:00") })
-        // await Reservation.create({ name: "test", phone: 123456789, partySize: 3, guestId: 2, reservationTime: new Date(reservationDate + " 10:00:00") })
-        // await Reservation.create({ name: "test", phone: 123456789, partySize: 3, guestId: 3, reservationTime: new Date(reservationDate + " 10:00:00") })
-        // await Reservation.create({ name: "test", phone: 123456789, partySize: 2, guestId: 4, reservationTime: new Date(reservationDate + " 12:00:00") })
-        // await Reservation.create({ name: "test", phone: 123456789, partySize: 3, guestId: 5, reservationTime: new Date(reservationDate + " 12:00:00") })
-        // await Reservation.create({ name: "test", phone: 123456789, partySize: 1, guestId: 6, reservationTime: new Date(reservationDate + " 10:00:00") })
-        // await Reservation.create({ name: "test", phone: 123456789, partySize: 1, guestId: 7, reservationTime: new Date(reservationDate + " 10:00:00") })
-        // await Reservation.create({ name: "test", phone: 123456789, partySize: 1, guestId: 8, reservationTime: new Date(reservationDate + " 10:00:00") })
-        // await Reservation.create({ name: "test", phone: 123456789, partySize: 1, guestId: 9, reservationTime: new Date(reservationDate + " 12:00:00") })
-        // await Reservation.create({ name: "test", phone: 123456789, partySize: 1, guestId: 10, reservationTime: new Date(reservationDate + " 12:00:00") })
     } catch (error) {
         res.status(422)
-        throw new Error('Something went wrong' + error)
+        throw new Error('Something went wrong ' + error)
     }
 })
 
@@ -71,11 +62,14 @@ const getMenuOptions = asyncHandler(async (req, res) => {
 const orderOnline = asyncHandler(async (req, res) => {
     try {
         const { cart, name, phone } = req.body
-        await Order.create({ cart: JSON.stringify(cart), phoneNumber: phone, name, date: new Date() })
-        
-        //send email to client
 
-        res.status(200).json({})
+        // similar thing for reservation
+        if(req.user)
+            await Order.create({ cart: JSON.stringify(cart), phoneNumber: phone, name, customer: req.user._id })
+        else
+            await Order.create({ cart: JSON.stringify(cart), phoneNumber: phone, name })
+
+        res.status(200).json({name})
     } catch (error) {
         res.status(422)
         throw new Error('Something went wrong' + error)
@@ -92,6 +86,15 @@ const getMenuById = asyncHandler(async (req, res) => {
         throw new Error('Something went wrong' + error)
     }
 })
+const orderHistory = asyncHandler(async (req, res) => {
+    try {
+        const Orders = await Order.find({ customer: req.user._id })
+        console.log('Orders', Orders);
+        res.status(200).json({ Orders })
+    } catch (error) {
+        res.status(422)
+        throw new Error('Something went wrong' + error)
+    }
+})
 
-
-module.exports = { orderOnline, getMenuOptions, getMenuById }
+module.exports = { orderHistory, orderOnline, getMenuOptions, getMenuById }

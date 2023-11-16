@@ -1,15 +1,22 @@
 const net = require('net')
 const server = net.createServer()
 let port = 9000
-// server.once('error', (e) => {
-// 	if (e.code === 'EADDRINUSE') {
-// 		port = port + 1
-// 		server.listen(port)
-// 	}
-// })
 
-server.once('listening', function () { server.close() })
+// start the server to check is there any error with port
 server.listen(port)
+// if there is any error
+server.once('error', (e) => {
+	// if the error is port related
+	if (e.code === 'EADDRINUSE') {
+		// change the port
+		port = port + 1
+		// start the server again to test the new port
+		server.listen(port)
+	}
+})
+// close the server because its just for testing the port and checking is there any error
+server.once('listening', function () { server.close() })
+// if the server is closed which means we know the right port now then start the actual application
 server.once('close', function () {
 
 	const express = require('express')

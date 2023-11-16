@@ -10,13 +10,7 @@ const userSchema = mongoose.Schema({
 	},
 	email: {
 		type: String,
-		required: [true, 'Please fill the email field'],
-		unique: true
-	},
-	username: {
-		type: String,
-		required: [true, 'Please fill the email field'],
-		unique: true
+		required: [true, 'Please fill the email field']
 	},
 	avatar: {
 		type: String,

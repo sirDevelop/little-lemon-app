@@ -32,9 +32,7 @@ function Footer() {
 			<Container>
 				<Row>
 					<Col lg={3}>
-						<p> 
-							<h3> 🍋 Little Lemon 🍋 </h3>
-						</p>
+						<h3> 🍋 Little Lemon 🍋 </h3>
 						<p>
 							A Taste of Italy in the Heart of Chicago
 						</p>
@@ -42,13 +40,16 @@ function Footer() {
 					<Col lg={3}></Col>
 					<Col lg={3}></Col>
 					<Col lg={3}>
-						{socials.map(social => {
-								return (
+						{socials.map((social, i) => {
+							return (
+								<div key={i}>
 									<a href={social.url} target="_blank" className="mx-3">
 										<FontAwesomeIcon icon={social.icon} size="2x" />
 									</a>
-								)
-							})
+								</div>
+
+							)
+						})
 						}
 					</Col>
 				</Row>

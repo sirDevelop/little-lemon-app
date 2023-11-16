@@ -7,7 +7,7 @@ import { useCookies } from "react-cookie"
 import { useGlobals } from "../Components/useGlobals"
 
 const OrderOnline = () => {
-	const { cart, setCart } = useGlobals()
+	const { user, cart, setCart, authApi } = useGlobals()
 	let totalPrice = 0.0
 	const [cookies, setCookie, removeCookie] = useCookies(["cart"])
 	const navigate = useNavigate()
@@ -16,9 +16,6 @@ const OrderOnline = () => {
 	const nameRef = useRef()
 	const phoneRef = useRef()
 
-	const axiosApi = useMemo(() => {
-		return axios.create({ baseURL: "http://localhost:9000/api/" })
-	}, [])
 
 	const orderOnline = (e) => {
 		e.preventDefault()
@@ -60,19 +57,18 @@ const OrderOnline = () => {
 
 									didOpen: () => {
 										swalWithBootstrapButtons.showLoading()
-										axiosApi
+										authApi
 											.post("/menuOptions/orderOnline", {
 												cart,
 												name,
 												phone,
 											})
 											.then((response) => {
-												console.log(response)
 												if (response.status === 200) {
 													swalWithBootstrapButtons.fire(
 														{
 															title: "Placed!",
-															text: "Thank you for your order! It will be ready in 15-20 minutes.",
+															text: "Thank you for your order, " + response.data.name + "! It will be ready in 15-20 minutes.",
 															icon: "success",
 														}
 													)
@@ -88,7 +84,7 @@ const OrderOnline = () => {
 												} else {
 													swalWithBootstrapButtons.fire(
 														{
-															title: "Something went wrong!",
+															title: "Something went wrong when placing your order!",
 															text: "Please try again later or contact us.",
 															icon: "danger",
 														}
@@ -97,11 +93,9 @@ const OrderOnline = () => {
 											})
 											.catch((error) => {
 												// TypeError: removeCookie is not a function
-    												// at main.7836805cb8448b095674.hot-update.js:110:23
-
-												console.log(error)
+												// at main.7836805cb8448b095674.hot-update.js:110:23
 												swalWithBootstrapButtons.fire({
-													title: "Something went wrong!",
+													title: "Something went wrong when placing your order!",
 													text: "Please try again later or contact us.",
 													icon: "danger",
 												})
@@ -118,10 +112,6 @@ const OrderOnline = () => {
 							}
 						})
 				} else {
-					// what does this mean?
-					// useContext, useRef
-					// does nameRef and phoneRef correspond to those input fields? If so, how?
-					// can we talk about useRef hook? And also custom hooks and how/why they are used...
 					nameRef.current.value
 						? phoneRef.current.focus()
 						: nameRef.current.focus()

@@ -1,5 +1,11 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faCartArrowDown, faSignInAlt } from "@fortawesome/free-solid-svg-icons"
+import {
+	faCartArrowDown,
+	faSignInAlt,
+	faSpinner,
+	faUserAlt,
+	faRightFromBracket
+} from "@fortawesome/free-solid-svg-icons"
 import { Link, useLocation } from "react-router-dom"
 import { useGlobals } from "./useGlobals"
 
@@ -12,7 +18,8 @@ import { Badge } from "react-bootstrap"
 
 const Navigation = () => {
 	const pathName = useLocation().pathname
-	const { cart, setCartOpen, loggedIn, openLogin } = useGlobals()
+	const { cart, setCartOpen, loggedIn, openLogin, loadingLogin, logout } =
+		useGlobals()
 	return (
 		<Navbar
 			className="bg-body-tertiary mb-3 rounded-bottom-5"
@@ -84,13 +91,40 @@ const Navigation = () => {
 								Reservations
 							</Nav.Link>
 						</Nav>
-						{!loggedIn ? <Button
-							className="mx-2"
-							onClick={openLogin}
-							variant="outline-success"
-						>
-							<FontAwesomeIcon icon={faSignInAlt} />
-						</Button>:<></>}
+						{loadingLogin ? (
+							<Button
+								className="mx-2"
+								variant="outline-success"
+							>
+								<FontAwesomeIcon icon={faSpinner} spin />
+							</Button>
+						) : !loggedIn ? (
+							<Button
+								className="mx-2"
+								onClick={openLogin}
+								variant="outline-success"
+							>
+								<FontAwesomeIcon icon={faSignInAlt} />
+							</Button>
+						) : (
+							<>
+								<Button
+									as={Link}
+									to="user"
+									variant="outline-success"
+								>
+									<FontAwesomeIcon icon={faUserAlt} />
+								</Button>
+								<Button
+									className="mx-2"
+									to="user"
+									variant="outline-success"
+									onClick={logout}
+								>
+									<FontAwesomeIcon icon={faRightFromBracket} />
+								</Button>
+							</>
+						)}
 						<Button
 							className="me-2"
 							onClick={() => setCartOpen(true)}
