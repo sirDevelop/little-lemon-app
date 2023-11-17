@@ -118,30 +118,30 @@ const registerUser = asyncHandler(async (req, res) => {
 })
 
 const editProfile = asyncHandler(async (req, res) => {
-	try{
-		const { formData } = req.body
+	try {
+		const { formData, changePassword } = req.body
 		if (!formData.firstName || !formData.lastName || !formData.email) {
 			res.status(400)
 			throw new Error('Please fill all fields')
 		}
-		const {firstName, lastName, email} = formData
+		const { firstName, lastName, email } = formData
 		let lfname = firstName.toLowerCase(), llname = lastName.toLowerCase(), lemail = email.toLowerCase()
 
 		const userExist = await User.findOne({ $or: [{ email }] })
 		if (userExist && req.user.email !== email) {
-			res.status(400)
-			throw new Error('User already exists')
+			res.status(401).json({})
+			// throw new Error('User already exists')
 		}
 
 		let user
 
-		if(formData.password && formData.changePassword){
-			const {password} = formData
+		if (formData.password && changePassword) {
+			const { password } = formData
 			const salt = await bcrypt.genSalt(10)
 			const hashedPassword = await bcrypt.hash(password, salt)
-			user = await User.findOneAndUpdate({id: req.user._id}, { firstname: lfname, lastname: llname, email: lemail, password: hashedPassword })
-		}else{
-			user = await User.findOneAndUpdate({id: req.user._id}, { firstname: lfname, lastname: llname, email: lemail })
+			user = await User.findOneAndUpdate({ id: req.user._id }, { firstname: lfname, lastname: llname, email: lemail, password: hashedPassword })
+		} else {
+			user = await User.findOneAndUpdate({ id: req.user._id }, { firstname: lfname, lastname: llname, email: lemail })
 		}
 
 		if (user) {
@@ -153,7 +153,7 @@ const editProfile = asyncHandler(async (req, res) => {
 				token: generateToken(user._id)
 			})
 		} else {
-			res.status(400)
+			res.status(402)
 			throw new Error('Invalid user data')
 		}
 	} catch (error) {

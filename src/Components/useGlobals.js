@@ -2,7 +2,7 @@ import React, { useContext, useState, useEffect, useMemo } from "react"
 import axios from "axios"
 import Swal from "sweetalert2"
 import { useCookies } from "react-cookie"
-import {useLocation} from "react-router-dom"
+import { useLocation } from "react-router-dom"
 import { useNavigate } from "react-router-dom"
 
 const GlobalsContent = React.createContext()
@@ -12,23 +12,19 @@ export function useGlobals() {
 }
 
 const GlobalsComponent = ({ children }) => {
-const navigate = useNavigate()
+	const navigate = useNavigate()
 	const pathName = useLocation().pathname
 	const [cookie, setCookie, removeCookie] = useCookies(["cart"])
 	const [cartOpen, setCartOpen] = useState(false)
 	const [cart, setCart] = useState([])
 
-	const authApi = useMemo(() => {
-		const authApiOptions = cookie.cs ? {
-			baseURL: "http://localhost:9000/api",
-			withCredentials: true,
-			headers: {
-				Authorization: `Bearer ${cookie.cs}`,
-			},
-		}:{baseURL: "http://localhost:9000/api"}
-
-		return axios.create(authApiOptions)
-	}, [cookie.cs])
+	const authApi = axios.create({
+		baseURL: "http://localhost:9000/api",
+		withCredentials: true,
+		headers: {
+			Authorization: cookie.cs ? `Bearer ${cookie.cs}` : "",
+		},
+	})
 
 	const [menuOptions, setMenuOptions] = useState([])
 
@@ -64,7 +60,6 @@ const navigate = useNavigate()
 	const [loggedIn, setLoggedIn] = useState()
 
 	// autologin if the cookie gets stored in the frontend
-	
 
 	useEffect(() => {
 		if (loggedIn === undefined && !loadingLogin) {
@@ -150,7 +145,7 @@ const navigate = useNavigate()
 					openRegister()
 				} else if (result.isDismissed) {
 					// close the modal
-					if(pathName.indexOf("user") !== -1) navigate("/")
+					if (pathName.indexOf("user") !== -1) navigate("/")
 					swalWithBootstrapButtons.close()
 				}
 			})
@@ -216,12 +211,12 @@ const navigate = useNavigate()
 				} else if (result.isDenied) {
 					openLogin()
 				} else if (result.isDismissed) {
-					if(pathName.indexOf("user") !== -1) navigate("/")
+					if (pathName.indexOf("user") !== -1) navigate("/")
 					swalWithBootstrapButtons.close()
 				}
 			})
 	}
-	
+
 	useEffect(() => {
 		if (formData) {
 			switch (formData.type) {
@@ -262,7 +257,6 @@ const navigate = useNavigate()
 				authApi
 					.post(`/users/login/`, { email, password: pass })
 					.then((response) => {
-						console.log('response', response)
 						setUser(response)
 						setCookie("cs", response.data.csrf, {
 							path: "/",
@@ -365,7 +359,7 @@ const navigate = useNavigate()
 				loadingLogin,
 				logout,
 				user,
-				setUser
+				setUser,
 			}}
 		>
 			{children}

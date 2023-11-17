@@ -40,18 +40,9 @@ server.once('close', function () {
 	app.use(express.json())
 	app.use(express.urlencoded({ extended: false }))
 
-    app.use("/api/reservation", require('./routes/reservationRoutes'))
+	app.use("/api/reservation", require('./routes/reservationRoutes'))
 	app.use("/api/users", require('./routes/userRoutes'))
-	app.use("/api/test", require('./routes/testRoutes'))
-    app.use("/api/menuOptions", require('./routes/menuOptionRoutes'))
-
-
-	// dev
-	// app.use("/api/dev", require('./routes/devRoutes'))
-	// dev
-
-	// http://localhost:9000/api/dev/create
-	// {name: "menu"}
+	app.use("/api/menuOptions", require('./routes/menuOptionRoutes'))
 
 	app.use(errorHandler)
 	app.listen(port, () => { console.log(`Server started on port ${port}`) })

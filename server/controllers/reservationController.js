@@ -15,8 +15,8 @@ const createReservation = asyncHandler(async (req, res) => {
 			availablePartySize = availablePartySize - val.partySize
 		})
 
-		if(availablePartySize){
-			if(req.user)
+		if (availablePartySize) {
+			if (req.user)
 				await Reservation.create({ name, phone, partySize, customer: req.user._id, reservationTime, reservationNumber: uuidv4() })
 			else
 				await Reservation.create({ name, phone, partySize, reservationTime, reservationNumber: uuidv4() })
@@ -24,7 +24,7 @@ const createReservation = asyncHandler(async (req, res) => {
 			res.status(200).json({
 				message: "Success"
 			})
-		}else{
+		} else {
 			res.status(402).json({
 				message: "Not enough available seats"
 			})
@@ -107,14 +107,13 @@ const getPartySizes = asyncHandler(async (req, res) => {
 
 		if (reservationTime) {
 			let availablePartySize = 48
-			const maxPartySize = 48
 			const date = new Date(parseInt(reservationTime, 10));
 
 			const allOfDateRelatedData = await Reservation.find({ reservationTime: date })
 
-			allOfDateRelatedData.map(val => {
-				availablePartySize - val.partySize
-			})
+			allOfDateRelatedData.map(val =>
+				availablePartySize = availablePartySize - val.partySize
+			)
 
 			res.status(200).json({
 				availablePartySize
@@ -127,14 +126,16 @@ const getPartySizes = asyncHandler(async (req, res) => {
 })
 
 const getReservationHistory = asyncHandler(async (req, res) => {
-    try {
-        const Reservations = await Reservation.find({ customer: req.user._id })
-        console.log('Reservations', Reservations);
-        res.status(200).json({ Reservations })
-    } catch (error) {
-        res.status(422)
-        throw new Error('Something went wrong' + error)
-    }
+	try {
+		if (req.user) {
+			const reservations = await Reservation.find({ customer: req.user._id })
+			res.status(200).json({ reservations })
+		} else
+			res.status(404).json({})
+	} catch (error) {
+		res.status(422)
+		throw new Error('Something went wrong')
+	}
 })
 
 module.exports = { getTime, createReservation, getPartySizes, getReservationHistory }
