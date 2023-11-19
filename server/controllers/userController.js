@@ -84,7 +84,7 @@ const registerUser = asyncHandler(async (req, res) => {
 
 	const userExist = await User.findOne({ $or: [{ email }] })
 	if (userExist) {
-		res.status(400)
+		res.status(401)
 		throw new Error('User already exists')
 	}
 
@@ -108,35 +108,34 @@ const registerUser = asyncHandler(async (req, res) => {
 			firstname: user.firstname,
 			lastname: user.lastname,
 			email: user.email,
-			csrf: csrfToken,
-			token: generateToken(user._id)
+			csrf: csrfToken
 		})
 	} else {
-		res.status(400)
+		res.status(402)
 		throw new Error('Invalid user data')
 	}
 })
 
 const editProfile = asyncHandler(async (req, res) => {
 	try {
-		const { formData, changePassword } = req.body
-		if (!formData.firstName || !formData.lastName || !formData.email) {
+		const { editFormData, changePassword } = req.body
+		if (!editFormData.firstName || !editFormData.lastName || !editFormData.email) {
 			res.status(400)
 			throw new Error('Please fill all fields')
 		}
-		const { firstName, lastName, email } = formData
+		const { firstName, lastName, email } = editFormData
 		let lfname = firstName.toLowerCase(), llname = lastName.toLowerCase(), lemail = email.toLowerCase()
 
-		const userExist = await User.findOne({ $or: [{ email }] })
+		const userExist = await User.findOne({ $and: [{ email }] })
 		if (userExist && req.user.email !== email) {
 			res.status(401).json({})
-			// throw new Error('User already exists')
+			throw new Error('User already exists')
 		}
 
 		let user
 
-		if (formData.password && changePassword) {
-			const { password } = formData
+		if (editFormData.password && changePassword) {
+			const { password } = editFormData
 			const salt = await bcrypt.genSalt(10)
 			const hashedPassword = await bcrypt.hash(password, salt)
 			user = await User.findOneAndUpdate({ id: req.user._id }, { firstname: lfname, lastname: llname, email: lemail, password: hashedPassword })
@@ -157,8 +156,10 @@ const editProfile = asyncHandler(async (req, res) => {
 			throw new Error('Invalid user data')
 		}
 	} catch (error) {
-		res.status(422)
-		throw new Error(`Something went wrong ${error}`)
+		if(error.message !== "User already exists") {
+			res.status(422)
+			throw new Error(`Something went wrong ${error}`)
+		}
 	}
 })
 

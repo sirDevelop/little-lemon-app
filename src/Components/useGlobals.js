@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect, useMemo } from "react"
+import React, { useContext, useState, useEffect } from "react"
 import axios from "axios"
 import Swal from "sweetalert2"
 import { useCookies } from "react-cookie"
@@ -18,25 +18,24 @@ const GlobalsComponent = ({ children }) => {
 	const [cartOpen, setCartOpen] = useState(false)
 	const [cart, setCart] = useState([])
 
+	// do not allow users to click login button if already logging in
+	const [loadingLogin, setLoadingLogin] = useState(false)
+
+	const [loggedIn, setLoggedIn] = useState()
+
 	const authApi = axios.create({
 		baseURL: "http://localhost:9000/api",
 		withCredentials: true,
 		headers: {
-			Authorization: cookie.cs ? `Bearer ${cookie.cs}` : "",
+			Authorization: `Bearer ${cookie.cs ? cookie.cs : ""}`,
 		},
 	})
-
 	const [menuOptions, setMenuOptions] = useState([])
 
 	useEffect(() => {
-		authApi
-			.get("/menuOptions/getMenuOptions")
-			.then((response) => {
-				setMenuOptions(response.data.getAllMenuOptions)
-			})
-			.catch((error) => {
-				console.log("something went wrong" + error)
-			})
+		authApi.get("/menuOptions/getMenuOptions").then((response) => {
+			setMenuOptions(response.data.getAllMenuOptions)
+		})
 	}, [])
 
 	// login
@@ -54,20 +53,14 @@ const GlobalsComponent = ({ children }) => {
 	})
 	const [user, setUser] = useState({})
 
-	// do not allow users to click login button if already logging in
-	const [loadingLogin, setLoadingLogin] = useState(false)
-
-	const [loggedIn, setLoggedIn] = useState()
-
 	// autologin if the cookie gets stored in the frontend
-
 	useEffect(() => {
 		if (loggedIn === undefined && !loadingLogin) {
 			setLoadingLogin(true)
 			authApi
 				.get(`/users/get/`)
-				.then((data) => {
-					setUser(data)
+				.then((response) => {
+					setUser(response)
 					setLoggedIn(true)
 				})
 				.catch(() => {
@@ -75,7 +68,7 @@ const GlobalsComponent = ({ children }) => {
 				})
 				.finally(() => setLoadingLogin(false))
 		}
-	}, [authApi, loadingLogin, loggedIn, user])
+	}, [])
 
 	// authentication
 	// email, password sent to server side from client. Server validate email and password
@@ -105,6 +98,9 @@ const GlobalsComponent = ({ children }) => {
 				denyButtonText: "Create New Account",
 				showDenyButton: true,
 				focusConfirm: false,
+				onClose: () => {
+					setFormData({})
+				},
 				preConfirm: () => {
 					setFormData({
 						email: document.getElementById("swal-input1").value,
@@ -164,6 +160,9 @@ const GlobalsComponent = ({ children }) => {
 				denyButtonText: "Back to Login",
 				showDenyButton: true,
 				focusConfirm: false,
+				onClose: () => {
+					setFormData({})
+				},
 				preConfirm: () => {
 					setFormData({
 						firstname: document.getElementById("swal-input1").value,
@@ -257,23 +256,27 @@ const GlobalsComponent = ({ children }) => {
 				authApi
 					.post(`/users/login/`, { email, password: pass })
 					.then((response) => {
-						setUser(response)
 						setCookie("cs", response.data.csrf, {
 							path: "/",
 							sameSite: "Strict",
 							secure: true,
 						})
 						setLoggedIn(true)
+						setUser(response)
 						Toast.fire({
 							icon: "success",
 							title: "Successfully logged in",
 						})
 					})
-					.catch((Error) => {
-						Toast.fire({
-							icon: "error",
-							title: "Something went wrong",
-						})
+					.catch((e) => {
+						swalWithBootstrapButtons
+							.fire({
+								icon: "error",
+								title: "Please enter valid login credentials",
+							})
+							.then(() => {
+								openLogin()
+							})
 					})
 					.finally(() => {
 						setLoadingLogin(false)
@@ -298,7 +301,7 @@ const GlobalsComponent = ({ children }) => {
 						password,
 					})
 					.then((response) => {
-						setUser({ ...user, email: response.data.email })
+						setUser(response)
 						setCookie("cs", response.data.csrf, {
 							path: "/",
 							sameSite: "Strict",
@@ -310,11 +313,24 @@ const GlobalsComponent = ({ children }) => {
 							title: "Successfully registered and logged in",
 						})
 					})
-					.catch(() => {
-						Toast.fire({
-							icon: "error",
-							title: "Something went wrong.",
-						})
+					.catch((e) => {
+						switch (e.response.status) {
+							case 401:
+								swalWithBootstrapButtons
+									.fire({
+										icon: "error",
+										title: "User already exists",
+									})
+									.then(() => {
+										openRegister()
+									})
+								break
+							default:
+								Toast.fire({
+									icon: "error",
+									title: "Something went wrong.",
+								})
+						}
 					})
 					.finally(() => {
 						setLoadingLogin(false)
@@ -329,7 +345,6 @@ const GlobalsComponent = ({ children }) => {
 				.then(() => {
 					setUser({})
 					setLoggedIn(false)
-
 					// we remove the authentication cookie
 					removeCookie("cs", { path: "/" })
 				})
@@ -339,6 +354,7 @@ const GlobalsComponent = ({ children }) => {
 						title: "Something went wrong.",
 					})
 				})
+				.finally(() => setFormData({}))
 		}
 	}
 
@@ -360,6 +376,7 @@ const GlobalsComponent = ({ children }) => {
 				logout,
 				user,
 				setUser,
+				formData,
 			}}
 		>
 			{children}

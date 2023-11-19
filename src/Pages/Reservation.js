@@ -14,7 +14,7 @@ import {
 import { useGlobals } from "../Components/useGlobals"
 
 const Reservation = () => {
-	const {authApi} = useGlobals()
+	const { authApi } = useGlobals()
 	const [timeOptions, setTimeOptions] = useState([])
 	const [partySizeAvailable, setPartySizeAvailable] = useState("")
 	const [formData, setFormData] = useState({
@@ -253,15 +253,6 @@ const Reservation = () => {
 												if (val.reservedNotice)
 													val.reservedNotice.map(
 														(reserved) => {
-															console.log(
-																val.defaultTitle +
-																	new Date(
-																		parseInt(
-																			reserved,
-																			10
-																		)
-																	)
-															)
 															// if (
 															// 	timeOptions.filter(
 															// 		(
