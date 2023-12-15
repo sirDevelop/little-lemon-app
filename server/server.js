@@ -19,6 +19,7 @@ server.once('listening', function () { server.close() })
 // if the server is closed which means we know the right port now then start the actual application
 server.once('close', function () {
 
+	require("dotenv").config(".env")
 	const express = require('express')
 	const router = express.Router()
 	const cors = require('cors')
@@ -26,7 +27,7 @@ server.once('close', function () {
 	const connectDB = require('./configs/db')
 	const app = express()
 	const cookieParser = require('cookie-parser')
-	const origins = ["http://127.0.0.1:3000", "http://localhost:3000", "http://127.0.0.1:3001", "http://localhost:3001"]
+	const origins = [...process.env.FRONT_END_URL.split(" ")]
 
 	connectDB()
 
