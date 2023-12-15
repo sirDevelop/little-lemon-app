@@ -10,15 +10,22 @@ const OrderOnline = () => {
 	const { user, cart, setCart, authApi } = useGlobals()
 	let totalPrice = 0.0
 	const [cookies, setCookie, removeCookie] = useCookies(["cart"])
+
+	// navigate to URL
 	const navigate = useNavigate()
 	const [name, setName] = useState("")
 	const [phone, setPhone] = useState("")
+
+	// ref does not cause component to re-render, only set state does
+	// grab form element - equivalent to getElementById in JS
 	const nameRef = useRef()
 	const phoneRef = useRef()
 
 
 	const orderOnline = (e) => {
 		e.preventDefault()
+
+		// make sure the name and phone fields are already rendered
 		if (nameRef.current && phoneRef.current) {
 			if (cart.length) {
 				if (name.length && phone.length) {
@@ -112,6 +119,7 @@ const OrderOnline = () => {
 							}
 						})
 				} else {
+					// focus on the other input element
 					nameRef.current.value
 						? phoneRef.current.focus()
 						: nameRef.current.focus()
@@ -186,6 +194,7 @@ const OrderOnline = () => {
 							<div className="col-md-6 mb-3">
 								<label htmlFor="firstName">Full name</label>
 								<Form.Control
+								// set the ref to this input element
 									ref={nameRef}
 									value={name}
 									onChange={(e) => setName(e.target.value)}
@@ -197,6 +206,7 @@ const OrderOnline = () => {
 							<div className="col-md-6 mb-3">
 								<label htmlFor="lastName">Phone Number</label>
 								<Form.Control
+								// set the ref to this input element
 									ref={phoneRef}
 									value={phone}
 									onChange={(e) => setPhone(e.target.value)}
