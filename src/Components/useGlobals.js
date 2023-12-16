@@ -314,23 +314,24 @@ const GlobalsComponent = ({ children }) => {
 						})
 					})
 					.catch((e) => {
-						switch (e.response.status) {
-							case 401:
-								swalWithBootstrapButtons
-									.fire({
+						if(e.response && e.response.status)
+							switch (e.response.status) {
+								case 401:
+									swalWithBootstrapButtons
+										.fire({
+											icon: "error",
+											title: "User already exists",
+										})
+										.then(() => {
+											openRegister()
+										})
+									break
+								default:
+									Toast.fire({
 										icon: "error",
-										title: "User already exists",
+										title: "Something went wrong.",
 									})
-									.then(() => {
-										openRegister()
-									})
-								break
-							default:
-								Toast.fire({
-									icon: "error",
-									title: "Something went wrong.",
-								})
-						}
+							}
 					})
 					.finally(() => {
 						setLoadingLogin(false)

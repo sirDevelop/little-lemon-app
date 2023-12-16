@@ -42,7 +42,7 @@ function Footer() {
 					<Col lg={3}>
 						{socials.map((social, i) => {
 							return (
-								<div key={i}>
+								<div key={i} className="d-inline-block">
 									<a href={social.url} target="_blank" className="mx-3">
 										<FontAwesomeIcon icon={social.icon} size="2x" />
 									</a>

@@ -27,7 +27,6 @@ server.once('close', function () {
 	const connectDB = require('./configs/db')
 	const app = express()
 	const cookieParser = require('cookie-parser')
-	console.log(process.env.FRONT_END_URL)
 	const origins = [...process.env.FRONT_END_URL.split(" ")]
 
 	connectDB()
