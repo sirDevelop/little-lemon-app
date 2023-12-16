@@ -24,7 +24,7 @@ const GlobalsComponent = ({ children }) => {
 	const [loggedIn, setLoggedIn] = useState()
 
 	const authApi = axios.create({
-		baseURL: "http://localhost:9000/api",
+		baseURL: process.env.REACT_APP_SERVER_URL+"/api",
 		withCredentials: true,
 		headers: {
 			Authorization: `Bearer ${cookie.cs ? cookie.cs : ""}`,
